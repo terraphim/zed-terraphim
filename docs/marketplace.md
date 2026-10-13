@@ -30,11 +30,15 @@ Publication still requires these actual dependencies:
    Do not downgrade it, substitute local bytes or call internal access public
    installation proof. Update the shared pin only after the new immutable
    release is verified across all supported assets.
-2. A scoped public source mirror. `github.com/terraphim/zed-terraphim` returned
-   HTTP 404; copying private monorepo history is not part of this publication.
-3. Manual stock-Zed qualification at the exact source commit submitted, then
+2. Manual stock-Zed qualification at the exact source commit submitted, then
    a human-authored catalog PR under the upstream AI policy. Upstream review
    and registry publication remain distinct from source or release publication.
+
+The scoped public source prerequisite is now satisfied. On 13 October, all 46
+files at [the initial public commit](https://github.com/terraphim/zed-terraphim/tree/1fc332292ea41ae98ed55bd97b2daaa0ce48bcd5)
+were fetched anonymously and matched the reviewed SHA-256 values and sizes.
+That commit has no parents: private Git history was not copied. Source
+availability does not certify the remaining LSP, native-host or registry gates.
 
 Current official prerequisites require an LSP-only ID ending in `-lsp` or
 `-language-server`, while MCP extensions contain one MCP server and nothing else:
