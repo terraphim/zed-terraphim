@@ -1,0 +1,13 @@
+id = "terraphim"
+name = "Terraphim"
+version = "0.2.0"
+schema_version = 1
+authors = ["Terraphim Team <team@terraphim.ai>"]
+description = "Terraphim knowledge-graph hover, synonym code actions, Lab marks and faded ghost text for Markdown, via terraphim-lsp."
+repository = "https://github.com/terraphim/zed-terraphim"
+
+[language_servers.terraphim-lsp]
+name = "Terraphim LSP"
+languages = ["Markdown"]
+
+[context_servers.terraphim]

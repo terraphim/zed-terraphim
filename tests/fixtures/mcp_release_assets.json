@@ -1,0 +1,30 @@
+[
+  {
+    "download_url": "https://github.com/terraphim/terraphim-clients/releases/download/terraphim_mcp_server-v1.21.18-rc.1/checksums.txt",
+    "name": "checksums.txt"
+  },
+  {
+    "download_url": "https://github.com/terraphim/terraphim-clients/releases/download/terraphim_mcp_server-v1.21.18-rc.1/terraphim_mcp_server-aarch64-apple-darwin",
+    "name": "terraphim_mcp_server-aarch64-apple-darwin"
+  },
+  {
+    "download_url": "https://github.com/terraphim/terraphim-clients/releases/download/terraphim_mcp_server-v1.21.18-rc.1/terraphim_mcp_server-aarch64-unknown-linux-musl",
+    "name": "terraphim_mcp_server-aarch64-unknown-linux-musl"
+  },
+  {
+    "download_url": "https://github.com/terraphim/terraphim-clients/releases/download/terraphim_mcp_server-v1.21.18-rc.1/terraphim_mcp_server-universal-apple-darwin",
+    "name": "terraphim_mcp_server-universal-apple-darwin"
+  },
+  {
+    "download_url": "https://github.com/terraphim/terraphim-clients/releases/download/terraphim_mcp_server-v1.21.18-rc.1/terraphim_mcp_server-x86_64-apple-darwin",
+    "name": "terraphim_mcp_server-x86_64-apple-darwin"
+  },
+  {
+    "download_url": "https://github.com/terraphim/terraphim-clients/releases/download/terraphim_mcp_server-v1.21.18-rc.1/terraphim_mcp_server-x86_64-unknown-linux-gnu",
+    "name": "terraphim_mcp_server-x86_64-unknown-linux-gnu"
+  },
+  {
+    "download_url": "https://github.com/terraphim/terraphim-clients/releases/download/terraphim_mcp_server-v1.21.18-rc.1/terraphim_mcp_server-x86_64-unknown-linux-musl",
+    "name": "terraphim_mcp_server-x86_64-unknown-linux-musl"
+  }
+]

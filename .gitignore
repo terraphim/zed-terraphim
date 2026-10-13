@@ -1,0 +1,10 @@
+/target
+/extension.wasm
+/grammars
+/demo/bin
+/demo/.zed/
+/dist
+__pycache__/
+
+/catalog/terraphim-lsp/target
+/catalog/terraphim-lsp/extension.wasm

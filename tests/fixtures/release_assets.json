@@ -1,0 +1,30 @@
+[
+  {
+    "name": "checksums.txt",
+    "download_url": "https://git.terraphim.cloud/terraphim/terraphim-lsp-releases/releases/download/terraphim_lsp-v1.22.0-rc.3/checksums.txt"
+  },
+  {
+    "name": "terraphim-lsp-aarch64-apple-darwin",
+    "download_url": "https://git.terraphim.cloud/terraphim/terraphim-lsp-releases/releases/download/terraphim_lsp-v1.22.0-rc.3/terraphim-lsp-aarch64-apple-darwin"
+  },
+  {
+    "name": "terraphim-lsp-aarch64-unknown-linux-musl",
+    "download_url": "https://git.terraphim.cloud/terraphim/terraphim-lsp-releases/releases/download/terraphim_lsp-v1.22.0-rc.3/terraphim-lsp-aarch64-unknown-linux-musl"
+  },
+  {
+    "name": "terraphim-lsp-universal-apple-darwin",
+    "download_url": "https://git.terraphim.cloud/terraphim/terraphim-lsp-releases/releases/download/terraphim_lsp-v1.22.0-rc.3/terraphim-lsp-universal-apple-darwin"
+  },
+  {
+    "name": "terraphim-lsp-x86_64-apple-darwin",
+    "download_url": "https://git.terraphim.cloud/terraphim/terraphim-lsp-releases/releases/download/terraphim_lsp-v1.22.0-rc.3/terraphim-lsp-x86_64-apple-darwin"
+  },
+  {
+    "name": "terraphim-lsp-x86_64-unknown-linux-gnu",
+    "download_url": "https://git.terraphim.cloud/terraphim/terraphim-lsp-releases/releases/download/terraphim_lsp-v1.22.0-rc.3/terraphim-lsp-x86_64-unknown-linux-gnu"
+  },
+  {
+    "name": "terraphim-lsp-x86_64-unknown-linux-musl",
+    "download_url": "https://git.terraphim.cloud/terraphim/terraphim-lsp-releases/releases/download/terraphim_lsp-v1.22.0-rc.3/terraphim-lsp-x86_64-unknown-linux-musl"
+  }
+]
