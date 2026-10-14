@@ -22,13 +22,13 @@ class CatalogRelease(unittest.TestCase):
         report = fixture.qualify()
         self.assertEqual(report["extensionId"], "terraphim-lsp")
         self.assertEqual(report["extensionPath"], CATALOG)
-        self.assertEqual(report["archive"]["name"], "terraphim-lsp-0.2.0.tar.gz")
+        self.assertEqual(report["archive"]["name"], f"terraphim-lsp-{fixture.version}.tar.gz")
         fixture.verify()
         second = package.package(fixture.root, fixture.wasm, fixture.base / "again",
                                  fixture.tag, extension_path=CATALOG)
         self.assertEqual(second.tarball.read_bytes(), fixture.packaged.tarball.read_bytes())
         members = package_qualification.inspect_archive(
-            second.tarball.read_bytes(), "0.2.0", extension_path=CATALOG)
+            second.tarball.read_bytes(), fixture.version, extension_path=CATALOG)
         for name in package.FILES:
             self.assertEqual(members[name], (fixture.root / CATALOG / name).read_bytes())
         self.assertNotIn("build-receipt.json", members)
@@ -53,12 +53,12 @@ class CatalogRelease(unittest.TestCase):
         fixture = Fixture(self, extension_path=CATALOG)
         wasm = package.ROOT / CATALOG / "target/wasm32-wasip2/release/zed_terraphim_lsp.wasm"
         output = fixture.base / "catalog-stage"
-        result = catalog_package.release(package.ROOT, wasm, output, "v0.2.0")
+        result = catalog_package.release(package.ROOT, wasm, output, fixture.tag)
         staged = json.loads((output / "catalog-build-receipt.json").read_bytes())
         self.assertEqual(staged["extensionId"], "terraphim-lsp")
         self.assertIs(staged["nativeQualified"], False)
         members = package_qualification.inspect_archive(result.tarball.read_bytes(),
-                                                         "0.2.0", CATALOG)
+                                                         fixture.version, CATALOG)
         self.assertEqual(members["extension.wasm"], wasm.read_bytes())
         self.assertEqual(set(members), {*package.FILES, "extension.wasm"})
         self.assertEqual(staged["files"]["extension.wasm"],
@@ -163,11 +163,11 @@ class CatalogRelease(unittest.TestCase):
             changed = {**original, key: value}
             with self.subTest(key=key, value=value), self.assertRaises(marketplace.GateError):
                 marketplace.validate_native_qualification(json.dumps(changed).encode(),
-                    fixture.source, {"version": "0.2.0"}, fixture.proof["publicLsp"], fixture.proof["assets"])
+                    fixture.source, {"version": fixture.version}, fixture.proof["publicLsp"], fixture.proof["assets"])
         for malformed in [b"[]", b"null", b"{}"]:
             with self.subTest(malformed=malformed), self.assertRaises(marketplace.GateError):
                 marketplace.validate_native_qualification(malformed, fixture.source,
-                    {"version": "0.2.0"}, fixture.proof["publicLsp"], fixture.proof["assets"])
+                    {"version": fixture.version}, fixture.proof["publicLsp"], fixture.proof["assets"])
 
     def test_native_receipt_bytes_are_frozen_separately_from_ci_module(self):
         fixture = Fixture(self, extension_path=CATALOG)
@@ -200,7 +200,7 @@ class CatalogRelease(unittest.TestCase):
         with publish_github.qualified_snapshot(fixture.artifacts, fixture.tag,
                 fixture.source, fixture.root, extension_path=CATALOG) as (_, files):
             fixture.packaged.tarball.write_bytes(b"other")
-            self.assertEqual(files[0].name, "terraphim-lsp-0.2.0.tar.gz")
+            self.assertEqual(files[0].name, f"terraphim-lsp-{fixture.version}.tar.gz")
             self.assertEqual(files[0].read_bytes(), original)
 
 
