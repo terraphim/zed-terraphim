@@ -23,14 +23,16 @@ explicitly records `nativeQualified: false`; a passing build cannot attest to
 manual Zed behavior or registry acceptance.
 
 The live official registry had no Terraphim entry when checked on 13 October.
+The RC4 crate was published, but its GitHub binary release failed in the two
+musl build lanes. The prospective RC5 pin preserves that immutable history.
 Publication still requires these actual dependencies:
 
 1. A publicly downloadable LSP release with authored-synonym export. The
-   prepared shared pin is `terraphim_lsp-v1.22.0-rc.4`; its release and checksum
+   prepared shared pin is `terraphim_lsp-v1.22.0-rc.5`; its release and checksum
    readback must pass for all six supported assets before this pin is published.
    The earlier RC3 GitHub lookup returned HTTP 404; its retained Gitea fixtures
    are historical evidence only. Do not substitute local bytes or call internal
-   access public installation proof. The [RC4 checklist](rc4-install-qualification.md)
+   access public installation proof. The [RC5 checklist](rc5-install-qualification.md)
    keeps dependency download, native installation and catalog acceptance separate.
 2. Manual stock-Zed qualification at the exact source commit submitted, then
    a human-authored catalog PR under the upstream AI policy. Upstream review
@@ -148,6 +150,6 @@ python3 scripts/marketplace.py --catalog --extension-path catalog/terraphim-lsp 
 
 The last command requires a clean checkout at the existing tag and a fresh
 output directory. It is intentionally expected to fail for the current
-unpublished public RC4 dependency. A failed gate is a blocker, not successful
+unpublished public RC5 dependency. A failed gate is a blocker, not successful
 installation evidence. Actual release/catalog commands must be run only after
 reviewing the exact tag and the successful receipt.

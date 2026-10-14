@@ -9,10 +9,10 @@ This package supplies the language server only. It downloads verified release
 assets from GitHub, or uses the user's explicit `lsp.terraphim-lsp.binary.path`.
 It does not provide the browser editor's panels or an MCP server.
 
-The prepared dependency is `terraphim_lsp-v1.22.0-rc.4`. Public release downloads
+The prepared dependency is `terraphim_lsp-v1.22.0-rc.5`. Public release downloads
 and a clean default installation remain pending; the historical RC3 test
 checksums are not evidence for this pin. Follow the
-[installation checklist](../../docs/rc4-install-qualification.md) before publishing.
+[installation checklist](../../docs/rc5-install-qualification.md) before publishing.
 
 ## Install and migrate
 

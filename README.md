@@ -15,11 +15,11 @@ no separate knowledge-graph engine and does not require a Zed application fork.
 
 In stock Zed, code actions swap existing KG synonyms and alternatives already
 saved in a Markdown annotation. Hover, diagnostics and writing actions use the
-shared LSP. The prepared RC4 server adds `terraphim.alternative.add_and_apply`
+shared LSP. The prospective RC5 server includes `terraphim.alternative.add_and_apply`
 for Zed's built-in LSP command picker: supply a JSON object with the document URI,
 selection range and new text. The server asks Zed to apply the annotation edit.
-This candidate flow has passed native save/reopen and undo/redo checks; the
-released RC4 installation gate remains pending. See the
+The earlier RC4 candidate flow passed native save/reopen and undo/redo checks; the
+released RC5 installation gate remains pending. See the
 [command-picker walkthrough](docs/alternative-authoring.md).
 The original `terraphim.alternative.add` still returns an edit for clients that
 apply it themselves. The adapter does not infer the current selection or provide
@@ -30,10 +30,10 @@ Rust types and crates.
 ## Publication status
 
 This is scoped extension source with public build/release CI. It is not yet an
-installable Zed registry entry. The prepared RC4 pin requires its new public LSP
+installable Zed registry entry. The prepared RC5 pin requires its new public LSP
 release and clean native installation qualification before marketplace submission.
-No RC4 checksum or successful installation is claimed while those gates are
-pending. See the [RC4 installation checklist](docs/rc4-install-qualification.md).
+No RC5 checksum or successful installation is claimed while those gates are
+pending. See the [RC5 installation checklist](docs/rc5-install-qualification.md).
 
 Automatic provisioning supports macOS and Linux on x86_64 and ARM64. Windows
 automatic provisioning is not qualified; an explicit binary path remains possible.

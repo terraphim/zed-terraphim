@@ -1,7 +1,8 @@
 # Author a new alternative with Zed's command picker
 
 Status: verified with a candidate RC4 server in stock Zed 1.23.3. The public
-RC4 release and default-install verification are still pending.
+RC4 GitHub binary release failed in the musl build lanes. The prospective RC5
+release and default-install verification remain pending.
 
 Zed's built-in **lsp command selector: toggle** action can pass JSON arguments
 to a language server. The prepared RC4 server advertises

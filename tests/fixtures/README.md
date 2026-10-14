@@ -7,7 +7,7 @@ so no credentials are needed): the release's `checksums.txt`
 (`sha256sum -- *` format) and its asset list (`name`, `download_url` = Gitea's
 `browser_download_url`, the `releases/download/<tag>/<asset>` scheme the
 extension reproduces in `gitea_asset_url`). These files remain an immutable
-historical RC3 capture. They are not RC4 checksums or public-install evidence.
+historical RC3 capture. They are not RC4 or RC5 checksums or public-install evidence.
 The live release gate downloads and verifies the current pin independently.
 
 The original capture used:
