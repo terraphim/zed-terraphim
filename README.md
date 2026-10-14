@@ -15,7 +15,7 @@ no separate knowledge-graph engine and does not require a Zed application fork.
 
 In stock Zed, code actions swap existing KG synonyms and alternatives already
 saved in a Markdown annotation. Hover, diagnostics and writing actions use the
-shared LSP. The prospective RC6 server includes `terraphim.alternative.add_and_apply`
+shared LSP. The released RC6 server includes `terraphim.alternative.add_and_apply`
 for Zed's built-in LSP command picker: supply a JSON object with the document URI,
 selection range and new text. The server asks Zed to apply the annotation edit.
 The earlier RC4 candidate flow passed native save/reopen and undo/redo checks; the
@@ -30,10 +30,12 @@ Rust types and crates.
 ## Publication status
 
 This is scoped extension source with public build/release CI. It is not yet an
-installable Zed registry entry. The prepared RC6 pin requires its new public LSP
-release and clean native installation qualification before marketplace submission.
-No RC6 checksum or successful installation is claimed while those gates are
-pending. See the [RC6 installation checklist](docs/rc6-install-qualification.md).
+installable Zed registry entry. The RC6 public LSP release and all six binary
+checksums have been verified. The first clean native installation failed at the
+GitHub metadata API with HTTP 403. The catalog downloader now uses the pinned
+public asset URLs directly, verifies checksums, and disables PATH fallback.
+A fresh native installation and saved-output qualification remain required
+before marketplace submission. See the [RC6 installation checklist](docs/rc6-install-qualification.md).
 
 Automatic provisioning supports macOS and Linux on x86_64 and ARM64. Windows
 automatic provisioning is not qualified; an explicit binary path remains possible.

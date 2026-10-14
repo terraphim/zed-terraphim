@@ -6,11 +6,13 @@ pinned language server as the existing Terraphim extension. The language server
 uses Terraphim's shared crates for alternatives and `synonyms::` relationships.
 
 This package supplies the language server only. It downloads verified release
-assets from GitHub, or uses the user's explicit `lsp.terraphim-lsp.binary.path`.
+assets from fixed, pinned GitHub URLs without a metadata API request or PATH
+fallback, or uses the user's explicit `lsp.terraphim-lsp.binary.path`.
 It does not provide the browser editor's panels or an MCP server.
 
-The prepared dependency is `terraphim_lsp-v1.22.0-rc.6`. Public release downloads
-and a clean default installation remain pending; the historical RC3 test
+The dependency is `terraphim_lsp-v1.22.0-rc.6`. Its public release downloads and
+checksums are verified. A fresh default installation remains pending after
+fixing a GitHub metadata API rate-limit failure; the historical RC3 test
 checksums are not evidence for this pin. Follow the
 [installation checklist](../../docs/rc6-install-qualification.md) before publishing.
 

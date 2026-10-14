@@ -1,7 +1,7 @@
 # RC6 default-install qualification
 
-Status: prospective RC6 preparation; release checksums and actual public
-installation are pending. The [RC4 checklist](rc4-install-qualification.md) and
+Status: RC6 public release and all six binary checksums verified on 14 October;
+fresh native installation is pending after a real metadata API HTTP 403 failure. The [RC4 checklist](rc4-install-qualification.md) and
 [RC5 checklist](rc5-install-qualification.md) are retained as history. RC4 failed
 in the musl build lanes; RC5 built all six binaries, but final release assembly
 rejected x86_64 log names. Neither GitHub binary release was published. Their
@@ -13,8 +13,11 @@ below pass. No hash in the historical RC3 fixtures is reused as an RC6 hash.
 
 The shared LSP pin is `terraphim_lsp-v1.22.0-rc.6` in the public
 `terraphim/terraphim-ai` repository. The catalog package disables the internal
-Gitea attempt; the legacy combined adapter preserves its source order and MCP
-configuration. Both still verify the selected binary against that release's
+Gitea attempt and GitHub metadata API. It downloads fixed URLs under the exact
+release tag and selects the first supported asset present in `checksums.txt`.
+It never searches PATH after a failed download. Explicit `binary.path` settings
+remain supported. The legacy combined adapter preserves its source order,
+GitHub API discovery, PATH fallback and independent MCP configuration. Both still verify the selected binary against that release's
 `checksums.txt` and store a versioned `.verified` marker. Checksums are downloaded
 and checked at runtime, not invented or embedded during this preparation.
 
@@ -24,6 +27,17 @@ and hash all six raw assets: macOS ARM64, macOS x86_64, macOS universal, Linux
 x86_64 GNU, Linux x86_64 musl and Linux ARM64 musl. Save its actual receipt and
 confirm the public LSP manifest binds the public source and crates.io archive.
 macOS binaries are unsigned; retain the release's actual qualification scope.
+
+## Preserved failed installation
+
+The first untouched stock-Zed profile installed the adapter at source
+`aee04b9e04136b23b0f6d1ecac99eabf525f0abb`, then failed before obtaining a
+binary: GitHub's unauthenticated metadata API returned HTTP 403 (rate limit).
+That failed profile and its log are retained as failure evidence. The direct
+pinned-asset change must be tested in another empty profile; a populated cache,
+manual binary override or PATH binary cannot establish that it fixes this failure.
+Pure URL, checksum-selection and fallback tests are local policy evidence, not
+proof of a successful network installation.
 
 ## Fresh stock-Zed profile
 

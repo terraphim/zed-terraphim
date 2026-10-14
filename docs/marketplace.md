@@ -11,7 +11,11 @@ Cargo library points to the existing `src/lib.rs`; the provisioning, settings
 and all knowledge-graph behavior remain shared. The root `terraphim` package
 continues to enable its existing LSP and MCP server. The catalog builds with
 `public-catalog` and no `mcp` feature, so it registers only the language server
-and skips the private-network Gitea download attempt. Both use the same pin and
+and skips the private-network Gitea download attempt. The catalog selects from
+the pinned public `checksums.txt` using fixed release URLs, without a metadata
+API request or PATH fallback. The explicit binary path remains supported. The
+legacy adapter retains Gitea-first, GitHub API discovery and PATH fallback; MCP
+keeps its independent pin and discovery. Both LSP packages use the same pin and
 checksum verification. Remove the legacy adapter before enabling the catalog
 package, because they register the same language-server ID.
 
@@ -25,8 +29,11 @@ manual Zed behavior or registry acceptance.
 The live official registry had no Terraphim entry when checked on 13 October.
 The RC4 crate was published, but its GitHub binary release failed in the two
 musl build lanes. RC5 built all six binaries, but final release assembly rejected
-x86_64 log names; no GitHub binary release was published. The prospective RC6
-pin preserves both immutable versions.
+x86_64 log names; no GitHub binary release was published. The RC6 release is
+public, with all six binaries anonymously downloaded and verified on 14 October.
+The first native default installation failed at the GitHub metadata API (403),
+so direct pinned-asset provisioning must pass a new clean native run. RC4 and
+RC5 remain immutable.
 Publication still requires these actual dependencies:
 
 1. A publicly downloadable LSP release with authored-synonym export. The
