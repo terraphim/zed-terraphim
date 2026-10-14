@@ -59,8 +59,20 @@ This run used the existing legacy adapter, not an installed catalog package or
 publicly provisioned LSP release. The fixture supplied the alternatives before
 native input; it does not demonstrate arbitrary-alternative UI creation.
 
-Trim Done persistence, clean Markdown export, dirty-destination refusal and the
-catalog installation/provisioning checks remain pending. Native input was
-blocked again by the Mac lock before Trim qualification. All 41 original editor
-requirements are not certified for stock Zed. The Zed application fork is outside
-this package.
+The completed native pass also persisted 12 ghosts through Trim Done, save and
+reopen. A subsequent eight-character edit shifted the saved span and ghost
+anchors by eight; each anchor still matched its text. The clean Markdown export
+contained exactly the expected 1,349 bytes after removing the marked passages
+and annotation fence. An unsaved export destination was refused, preserving both
+its disk contents and the user's pending edit. These checks use the settled saved
+files after the asynchronous annotation update completes.
+
+The reviewed core changes subsequently merged as
+`81afcb8750938495a7176466cf19ebbc27889292`; the LSP/core source and dependency lock
+are unchanged from the native-tested candidate. Post-merge tests and
+warnings-denied Clippy passed. A source merge does not qualify a new release
+binary.
+
+The exact catalog package installation and public LSP provisioning checks remain
+pending. All 41 original editor requirements are not certified for stock Zed.
+The Zed application fork is outside this package.
