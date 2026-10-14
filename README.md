@@ -44,6 +44,54 @@ this root directory or `catalog/terraphim-lsp`. Remove the other adapter first.
 Use `lsp.terraphim-lsp.binary.path` for an explicitly selected candidate server;
 record its source and SHA-256 when qualifying it.
 
+## Choose your knowledge graph
+
+For hover and replacement suggestions from an existing graph, add its absolute
+JSON path to the project's `.zed/settings.json`:
+
+```json
+{
+  "lsp": {
+    "terraphim-lsp": {
+      "initialization_options": {
+        "thesaurus": "/absolute/path/to/brief.knowledge-graph.json"
+      }
+    }
+  }
+}
+```
+
+The default graph is empty. Export or compile an existing role's thesaurus to
+JSON to use it here; this adapter has no named-role picker. You can author new
+alternatives and export their document graph without loading an existing graph.
+
+## Use the graph with Terraphim CLIs
+
+Install `terraphim-grep` and `terraphim-agent` separately from the
+[Terraphim clients releases](https://github.com/terraphim/terraphim-clients/releases/tag/v1.21.20).
+The Zed extension does not install either CLI. After exporting your graph, search
+notes by an authored synonym:
+
+```sh
+terraphim-grep Concern --search-only --haystack all --paths ./corpus \
+  --thesaurus ./brief.knowledge-graph.json --json -n 3
+```
+
+You can also explicitly save a project decision to the agent's local memory:
+
+```sh
+terraphim-agent --format json memory capture \
+  --content 'Risk requires a Decision: approve a second supplier as the mitigation.' \
+  --provenance-tag 'public-project-brief'
+MEMORY_ID='paste-the-returned-memory-id'
+terraphim-agent memory show "$MEMORY_ID" --json
+```
+
+Set `MEMORY_ID` to the capture response's ID before running `memory show`. Memory uses the
+agent's configured local store; capture is a separate action, not an automatic
+import of the editor graph. Follow the [complete example](docs/cli-workflows.md) for the source
+Markdown, exact Zed export steps and expected saved results.
+
 ## Build and releases
 
 ```sh
