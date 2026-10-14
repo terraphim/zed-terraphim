@@ -109,11 +109,61 @@ rejected x86_64 log names. Its GitHub binary release was not published. The
 [RC5 checklist](rc5-install-qualification.md) and untouched isolated input fixture
 remain historical preparation, not proof of a default installation.
 
-## Prospective public RC6 installation (14 October 2026)
+## Released RC6 default-provisioning check (14 October 2026)
 
-The prepared shared pin is `terraphim_lsp-v1.22.0-rc.6`. Its public assets,
-checksums and native default-download results remain pending. The candidate
-checks above retain their original identities. The next run follows the
-[RC6 isolated installation checklist](rc6-install-qualification.md), using the
-catalog package without a binary override and inspecting the actual provisioned
-path. A successful local build alone cannot qualify release installation.
+Source `140e25b573865efa372418ac5475771a12c4785d` installed the catalog adapter in
+an empty stock-Zed 1.23.3 profile and downloaded RC6 through its pinned public
+asset URLs, with no binary override or PATH fallback. The actual universal macOS
+server SHA-256 was `3b07976ffde477cbbe2705b078d64188fa2dd27e9a93a6b4052e8f152a4510f3`.
+A restart reused the verified cache. Native authoring, swap, saved undo/redo,
+reopen, two graph exports, Trim, clean export and released-grep retrieval produced
+saved outputs. This was a Zed dev build of the catalog source, not installation
+of a GitHub-published extension archive.
+
+The dirty-JSON regression **failed**: graph export overwrote an unsaved interior
+change in an open JSON destination. Native Undo recovered the test edit. A dirty
+Markdown clean-export destination was correctly refused; that does not qualify
+JSON protection. The earlier append-only JSON test also did not prove refusal.
+The discovered JSON failure must be repaired and verified with a new released
+server and exact catalog source before release admission.
+
+The earlier [RC6 checklist](rc6-install-qualification.md) preserves the original
+prepared steps. Its earlier metadata-API HTTP 403 profile remains separate from
+the successful direct-download profile. RC4/RC5 source and release history above
+remain unchanged.
+
+## Compiled release-package qualification
+
+Follow [released-package installation](released-package-install.md) in a second
+empty profile. Record the anonymous download checksum, exact archive files and
+loaded WASM hash, with no Cargo source or compiler invocation. Then perform the
+native checks above and save their actual outputs. Keep this receipt separate
+from the source dev-build receipt; identify which bytes each run exercised.
+Official Zed catalog installation still requires upstream acceptance and an
+actual registry install. None of these bounded checks certifies all 41 browser
+requirements for stock Zed.
+
+## Native source receipt schema
+
+The manually reviewed source-install receipt is JSON at an immutable raw GitHub
+URL in this repository: `https://raw.githubusercontent.com/terraphim/zed-terraphim/<40-character-evidence-commit>/docs/qualifications/<receipt>.json`.
+The evidence commit may follow the tested source, provided `qualifiedCommit`
+remains the exact tested/tagged source. Publish only sanitized public fixtures;
+keep local absolute paths, account details and private original receipts outside
+this repository.
+
+The schema requires:
+
+- `schema: 1`, `status: "PASS"`, `scope: "stock-zed-source"` and exact `qualifiedCommit`.
+- `extensionId: "terraphim-lsp"`, `extensionPath: "catalog/terraphim-lsp"` and the catalog `version`.
+- `sourceInstallWasm` containing the actual native dev-install module's SHA-256 and byte count.
+- `server` containing `releaseTag`, `sha256` and `bytes`, matching an anonymously verified asset of that pinned public release.
+- `checks` with PASS for `defaultProvisioning`, `cacheRestart`, `createApplySaveUndoRedoReopen`, `synonymGraphExportTwice`, `dirtyJsonRefusal`, `trimDoneAnchorShift`, `cleanExportDirtyRefusal` and `releasedGrepSharedSynonym`.
+- Nonempty `savedOutputs`, each with a unique public filename `name`, actual `sha256` and `bytes`. Inputs must remain identified separately in the human-reviewed evidence.
+
+CI checks these declarations and binds the downloaded receipt's exact bytes to
+preflight/package qualification. It does not rerun native UI interactions or
+substitute the receipt's dev-module hash for the different CI module. Publication
+uses the saved receipt from the original verify-job artifact. After publication,
+a separate actual downloaded-package installation receipt identifies the CI WASM
+loaded in stock Zed and its resulting saved outputs.

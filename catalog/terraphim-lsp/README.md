@@ -10,16 +10,20 @@ assets from fixed, pinned GitHub URLs without a metadata API request or PATH
 fallback, or uses the user's explicit `lsp.terraphim-lsp.binary.path`.
 It does not provide the browser editor's panels or an MCP server.
 
-The dependency is `terraphim_lsp-v1.22.0-rc.6`. Its public release downloads and
-checksums are verified. A fresh default installation remains pending after
-fixing a GitHub metadata API rate-limit failure; the historical RC3 test
-checksums are not evidence for this pin. Follow the
-[installation checklist](../../docs/rc6-install-qualification.md) before publishing.
+The language-server version is pinned in the shared adapter source. Each release
+binds that dependency, the extension source and compiled package bytes in its
+qualification receipt. See the repository's
+[qualification evidence](https://github.com/terraphim/zed-terraphim/blob/main/docs/qualification.md).
 
 ## Install and migrate
 
-For local qualification, choose **Extensions → Install Dev Extension** and select
-this `catalog/terraphim-lsp` directory. A catalog listing is available only after
+For a precompiled GitHub release, verify its checksums and select the extracted
+four-file directory in **Extensions → Install Dev Extension**. It contains the
+released `extension.wasm` and no Cargo source; Zed loads those exact bytes.
+Follow the [released-package instructions](https://github.com/terraphim/zed-terraphim/blob/main/docs/released-package-install.md).
+
+For source development, select this `catalog/terraphim-lsp` source directory
+instead; Zed compiles a dev build. A catalog listing is available only after
 Zed maintainers accept the submission and the registry build completes.
 
 Remove/disable the legacy **Terraphim** extension before enabling **Terraphim LSP**:

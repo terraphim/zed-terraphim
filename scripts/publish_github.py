@@ -34,27 +34,31 @@ def release(repo, tag):
     return found[0] if found else None
 
 
-def verify_package(artifacts, tag, source, root=package.ROOT):
-    return package_qualification.verify(root, artifacts, tag, source)
+def verify_package(artifacts, tag, source, root=package.ROOT, extension_path=""):
+    return package_qualification.verify(root, artifacts, tag, source, extension_path)
 
 
 @contextmanager
-def qualified_snapshot(artifacts, tag, source, root=package.ROOT):
+def qualified_snapshot(artifacts, tag, source, root=package.ROOT, extension_path=""):
     """Validate a private snapshot and use those same bytes through publication."""
-    package.check_tag(tag, package.read_version((root / "extension.toml").read_text()))
+    _, manifest, prefix = package.identity(root, extension_path)
+    package.check_tag(tag, manifest["version"])
     with tempfile.TemporaryDirectory(prefix="zed-qualified-") as tmp:
         snapshot = Path(tmp)
-        for relative in [
+        paths = [
             "public-preflight/preflight.json",
-            f"release-dist/terraphim-zed-{tag[1:]}.tar.gz",
+            f"release-dist/{prefix}-{tag[1:]}.tar.gz",
             "release-dist/SHA256SUMS",
             f"release-dist/{package_qualification.RECEIPT}",
-        ]:
+        ]
+        if extension_path:
+            paths.append("public-preflight/native-qualification.json")
+        for relative in paths:
             destination = snapshot / relative
             destination.parent.mkdir(parents=True, exist_ok=True)
             with destination.open("xb") as output:
                 output.write((artifacts / relative).read_bytes())
-        yield verify_package(snapshot, tag, source, root)
+        yield verify_package(snapshot, tag, source, root, extension_path)
 
 
 def verify_remote_tag(repo, tag, source):
@@ -80,6 +84,7 @@ def fresh_readback(artifacts):
 def main():
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument("--tag", required=True)
+    parser.add_argument("--extension-path", choices=package.PACKAGE_IDENTITIES, default="")
     parser.add_argument("--repo", required=True)
     parser.add_argument("--artifacts", type=Path, required=True)
     args = parser.parse_args()
@@ -89,7 +94,7 @@ def main():
         source = subprocess.check_output(
             ["git", "rev-parse", "HEAD"], cwd=package.ROOT, text=True
         ).strip()
-        with qualified_snapshot(args.artifacts, args.tag, source) as (receipt, files):
+        with qualified_snapshot(args.artifacts, args.tag, source, extension_path=args.extension_path) as (receipt, files):
             if receipt["repository"] != args.repo:
                 raise marketplace.GateError("Preflight belongs to another repository")
             verify_remote_tag(args.repo, args.tag, source)
@@ -98,7 +103,7 @@ def main():
             if current is None:
                 notes = args.artifacts / "release-notes.md"
                 notes.write_text(
-                    f"Zed extension {args.tag}; source `{source}`.\n\nPackage SHA-256 is in SHA256SUMS; package-qualification.json binds its files and WASM to this source and CI preflight. Public pinned LSP downloads passed the release gate. This package is not a claim of Zed catalog acceptance. See docs/marketplace.md for catalog prerequisites.\n"
+                    f"Zed extension {receipt['extensionId']} {args.tag}; source `{source}`.\n\nPackage SHA-256 is in SHA256SUMS; package-qualification.json binds its files and WASM to this source and CI preflight. Public pinned LSP downloads passed the release gate. This package is not a claim of Zed catalog acceptance. See docs/marketplace.md for catalog prerequisites.\n"
                 )
                 command = [
                     "release",
@@ -165,6 +170,8 @@ def main():
                 "status": "PUBLISHED_PUBLIC_VERIFIED",
                 "tag": args.tag,
                 "source": source,
+                "extensionId": receipt["extensionId"],
+                "extensionPath": args.extension_path,
                 "assets": [
                     {
                         "name": path.name,

@@ -19,7 +19,7 @@ import publish_github
 
 
 class Fixture:
-    def __init__(self, case, tag="v0.2.0"):
+    def __init__(self, case, tag="v0.2.0", extension_path=""):
         temporary = tempfile.TemporaryDirectory()
         case.addCleanup(temporary.cleanup)
         self.base = Path(temporary.name)
@@ -27,6 +27,12 @@ class Fixture:
         self.root.mkdir()
         for name in package.FILES:
             (self.root / name).write_bytes((package.ROOT / name).read_bytes())
+        self.extension_path = extension_path
+        if extension_path:
+            nested = self.root / extension_path
+            nested.mkdir(parents=True)
+            for name in package.FILES:
+                (nested / name).write_bytes((package.ROOT / extension_path / name).read_bytes())
         (self.root / "build-source.rs").write_text("// Tracked non-packaged source\n")
         self.git("init", "-q")
         self.git("add", ".")
@@ -38,15 +44,38 @@ class Fixture:
         (self.artifacts / "public-preflight").mkdir(parents=True)
         self.proof = {
             "status": "PASS", "source": self.source, "tag": self.tag,
-            "version": "0.2.0", "extensionId": "terraphim", "catalog": False,
+            "version": "0.2.0", "extensionId": "terraphim-lsp" if extension_path else "terraphim",
+            "extensionPath": extension_path, "catalog": bool(extension_path),
             "repository": "example/zed-terraphim",
         }
+        if extension_path:
+            # Parser fixtures only: these declarations do not attest to a native run.
+            native = {
+                "schema": 1, "status": "PASS", "scope": "stock-zed-source",
+                "qualifiedCommit": self.source, "extensionId": "terraphim-lsp",
+                "extensionPath": extension_path, "version": "0.2.0",
+                "sourceInstallWasm": {"sha256": "1" * 64, "bytes": 562871},
+                "server": {"releaseTag": "terraphim_lsp-v1.22.0-rc.7",
+                           "sha256": "2" * 64, "bytes": 13000000},
+                "checks": {name: "PASS" for name in marketplace.NATIVE_CHECKS},
+                "savedOutputs": [{"name": "saved-fixture.md", "sha256": "3" * 64, "bytes": 73}],
+            }
+            self.native_data = json.dumps(native).encode()
+            self.native_path = self.artifacts / "public-preflight/native-qualification.json"
+            self.native_path.write_bytes(self.native_data)
+            self.proof["qualificationUrl"] = "https://raw.githubusercontent.com/example/zed-terraphim/" + "a" * 40 + "/docs/native.json"
+            self.proof["publicLsp"] = {"tag": native["server"]["releaseTag"]}
+            self.proof["assets"] = [{"sha256": native["server"]["sha256"], "bytes": native["server"]["bytes"]}]
+            self.proof["nativeQualification"] = marketplace.native_evidence_record(
+                self.native_data, self.proof["qualificationUrl"], self.proof["repository"],
+                self.source, {"version": "0.2.0"}, self.proof["publicLsp"], self.proof["assets"])
         self.preflight = self.artifacts / "public-preflight/preflight.json"
         self.preflight.write_text(json.dumps(self.proof))
         self.wasm = self.base / "ci-built.wasm"
         self.wasm.write_bytes(b"\x00asm\x01\x00\x00\x00")
         self.packaged = package.package(
-            self.root, self.wasm, self.artifacts / "release-dist", self.tag
+            self.root, self.wasm, self.artifacts / "release-dist", self.tag,
+            **({"extension_path": extension_path} if extension_path else {})
         )
         self.receipt = self.artifacts / "release-dist" / qualification.RECEIPT
 
@@ -58,11 +87,13 @@ class Fixture:
                  "-c", "commit.gpgsign=false", "commit", "-qm", message)
 
     def qualify(self):
-        return qualification.qualify(self.root, self.artifacts, self.tag, self.wasm)
+        return qualification.qualify(self.root, self.artifacts, self.tag, self.wasm,
+                                     **({"extension_path": self.extension_path} if self.extension_path else {}))
 
     def verify(self):
         return publish_github.verify_package(
-            self.artifacts, self.tag, self.source, root=self.root
+            self.artifacts, self.tag, self.source, root=self.root,
+            **({"extension_path": self.extension_path} if self.extension_path else {})
         )
 
     def refresh_checksum(self):

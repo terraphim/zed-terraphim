@@ -30,10 +30,29 @@ import shutil
 import subprocess
 import sys
 import tarfile
+import tomllib
 from typing import NamedTuple, Optional
 
 ROOT = pathlib.Path(__file__).resolve().parent.parent
 FILES = ["LICENSE", "README.md", "extension.toml"]
+CATALOG_PATH = "catalog/terraphim-lsp"
+PACKAGE_IDENTITIES = {"": ("terraphim", "terraphim-zed"),
+                      CATALOG_PATH: ("terraphim-lsp", "terraphim-lsp")}
+
+
+def identity(root: pathlib.Path, extension_path: str = ""):
+    """Return the fixed package identity, refusing path or manifest substitution."""
+    if extension_path not in PACKAGE_IDENTITIES:
+        raise PackageError("Unsupported extension path")
+    selected = root / extension_path
+    if not selected.resolve().is_relative_to(root.resolve()):
+        raise PackageError("Extension path escapes source checkout")
+    expected_id, prefix = PACKAGE_IDENTITIES[extension_path]
+    manifest = tomllib.loads((selected / "extension.toml").read_text())
+    if manifest.get("id") != expected_id:
+        raise PackageError("Extension identity differs from selected source path")
+    return selected, manifest, prefix
+
 # Fixed timestamp for every archive entry; SOURCE_DATE_EPOCH overrides it.
 FIXED_MTIME = int(os.environ.get("SOURCE_DATE_EPOCH", "0"))
 TAG_RE = re.compile(r"v(\d+\.\d+\.\d+)(-rc\.\d+)?")
@@ -51,7 +70,7 @@ class Result(NamedTuple):
 
 def read_version(text: str, table: Optional[str] = None) -> str:
     """Return `version = "..."` from the top level of a TOML file, or from
-    `[table]` when given. Avoids tomllib so Python 3.8+ is enough."""
+    `[table]` when given. Retained for existing version-check callers."""
     current = None
     for line in text.splitlines():
         stripped = line.strip()
@@ -124,24 +143,26 @@ def package(
     wasm: pathlib.Path,
     out_dir: pathlib.Path,
     tag: Optional[str] = None,
+    extension_path: str = "",
 ) -> Result:
-    version = read_version((root / "extension.toml").read_text())
+    selected, manifest, prefix = identity(root, extension_path)
+    version = manifest["version"]
     prerelease = check_tag(tag, version) if tag else False
     data = wasm.read_bytes()
     if not data.startswith(b"\x00asm"):
         raise PackageError(f"{wasm} is not a WebAssembly module")
 
-    name = f"terraphim-zed-{version}"
+    name = f"{prefix}-{version}"
     staged = out_dir / name
     if staged.exists():
         shutil.rmtree(staged)
     staged.mkdir(parents=True)
     for file in FILES:
-        shutil.copyfile(root / file, staged / file)
+        shutil.copyfile(selected / file, staged / file)
     (staged / "extension.wasm").write_bytes(data)
 
     release = tag[1:] if tag else version
-    tarball = out_dir / f"terraphim-zed-{release}.tar.gz"
+    tarball = out_dir / f"{prefix}-{release}.tar.gz"
     write_tarball(staged, tarball)
     digest = hashlib.sha256(tarball.read_bytes()).hexdigest()
     sums = out_dir / "SHA256SUMS"

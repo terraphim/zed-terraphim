@@ -56,6 +56,22 @@ class CatalogPackageTests(unittest.TestCase):
             with self.subTest(value=value), self.assertRaises(marketplace.GateError):
                 catalog.registry_entry("", "terraphim-lsp", "0.2.0", value)
 
+    def test_catalog_can_add_only_passive_json_without_changing_legacy(self):
+        root = self.fixture()
+        legacy = (root / "extension.toml").read_bytes()
+        manifest = root / catalog_package.PATH / "extension.toml"
+        manifest.write_text(manifest.read_text().replace(
+            'languages = ["Markdown"]',
+            'languages = ["Markdown", "JSON", "JSONC"]\nlanguage_ids = { JSON = "json", JSONC = "jsonc" }'))
+        catalog_package.validate_source(root)
+        self.assertEqual((root / "extension.toml").read_bytes(), legacy)
+        text = manifest.read_text()
+        for changed in [text.replace('JSONC = "jsonc"', 'JSONC = "markdown"'),
+                        text.replace('["Markdown", "JSON", "JSONC"]', '["Markdown", "JSON", "Python"]')]:
+            manifest.write_text(changed)
+            with self.assertRaisesRegex(marketplace.GateError, "only passive"):
+                catalog_package.validate_source(root)
+
     def test_catalog_rejects_retargeting_an_existing_manifest_directory(self):
         text = '[terraphim-lsp]\nsubmodule = "extensions/terraphim-lsp"\npath = "other"\nversion = "0.2.0"\n'
         with self.assertRaisesRegex(

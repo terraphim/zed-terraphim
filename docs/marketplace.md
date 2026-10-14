@@ -4,7 +4,7 @@ This repository continues the existing stock-Zed adapter. Gitea remains the
 source of record; the GitHub mirror is the public build/catalog source. It does
 not depend on or modify a Zed fork.
 
-## Catalog package and remaining publication gates (2026-10-13)
+## Catalog package and publication gates
 
 `catalog/terraphim-lsp` is the separate **Terraphim LSP** catalog package. Its
 Cargo library points to the existing `src/lib.rs`; the provisioning, settings
@@ -26,26 +26,17 @@ and saves its actual WASM bytes and hashes in `dist/catalog`. A build receipt
 explicitly records `nativeQualified: false`; a passing build cannot attest to
 manual Zed behavior or registry acceptance.
 
-The live official registry had no Terraphim entry when checked on 13 October.
-The RC4 crate was published, but its GitHub binary release failed in the two
-musl build lanes. RC5 built all six binaries, but final release assembly rejected
-x86_64 log names; no GitHub binary release was published. The RC6 release is
-public, with all six binaries anonymously downloaded and verified on 14 October.
-The first native default installation failed at the GitHub metadata API (403),
-so direct pinned-asset provisioning must pass a new clean native run. RC4 and
-RC5 remain immutable.
-Publication still requires these actual dependencies:
+Source builds, native source qualification, GitHub packages and official catalog
+installation are distinct checks. Before releasing the catalog package, verify
+the exact pinned public language-server assets, complete the native checklist
+at the tagged extension source, and retain the saved output files. After release,
+install the downloaded compiled package and repeat those checks without a rebuild.
+[Qualification](qualification.md) retains the dated candidate and released-binary
+results, including discovered failures. [Released-package installation](released-package-install.md)
+describes how the artifact bytes are preserved through native testing.
 
-1. A publicly downloadable LSP release with authored-synonym export. The
-   prepared shared pin is `terraphim_lsp-v1.22.0-rc.6`; its release and checksum
-   readback must pass for all six supported assets before this pin is published.
-   The earlier RC3 GitHub lookup returned HTTP 404; its retained Gitea fixtures
-   are historical evidence only. Do not substitute local bytes or call internal
-   access public installation proof. The [RC6 checklist](rc6-install-qualification.md)
-   keeps dependency download, native installation and catalog acceptance separate.
-2. Manual stock-Zed qualification at the exact source commit submitted, then
-   a human-authored catalog PR under the upstream AI policy. Upstream review
-   and registry publication remain distinct from source or release publication.
+An upstream catalog PR must be human-authored under Zed's policy. Acceptance and
+registry publication remain separate from this repository's source/release CI.
 
 The scoped public source prerequisite is now satisfied. On 13 October, all 46
 files at [the initial public commit](https://github.com/terraphim/zed-terraphim/tree/1fc332292ea41ae98ed55bd97b2daaa0ce48bcd5)
@@ -68,26 +59,45 @@ the existing deterministic `package.py` packager. No publication token is
 available to this workflow. Existing Gitea workflows retain their own channel.
 
 `.github/workflows/release.yml` accepts an existing `vX.Y.Z` or `vX.Y.Z-rc.N`
-tag matching `extension.toml`. A tag push publishes only after all checks;
-manual dispatch defaults to verification without publication. It never creates
-or moves tags. A release source must be on the public mirror's default branch.
+tag matching the catalog manifest. Tag pushes verify the catalog package but do
+not publish. Manual dispatch defaults to verification. To publish, dispatch at
+that exact tag ref with `publish=true`, the exact native-tested `qualified_commit`
+and an immutable raw-GitHub `qualification_url` at a full 40-character commit
+in this source repository. CI downloads that JSON, validates its catalog/source
+identity, named native checks and saved-output hashes, and requires its recorded
+server hash/size to match a verified asset from the pinned public LSP release.
+Its source-install WASM hash remains distinct from the CI release module; see the
+[receipt schema](qualification.md#native-source-receipt-schema). Catalog publication requires a stable
+extension tag. The protected `zed-release` environment retains its tag-only policy;
+no branch dispatch can authorize a different tag through an input.
 
-The public preflight compiles `examples/release-contract.rs`, which obtains the
-pin and all six raw LSP candidates directly from the existing Rust
-`provision::LSP` and `candidate_assets` types/functions. It anonymously downloads
-`checksums.txt` and every named raw binary using ordinary GitHub URLs, verifies
-SHA-256 and native executable format, and records the source/tag, URLs, sizes
-and hashes. It does not execute foreign binaries or claim native-host UAT.
-The internal Gitea source and PATH overrides cannot satisfy this gate.
+The public preflight executes `examples/release-contract.rs` with the catalog
+feature set and obtains the actual `configured_lsp()` contract. It requires fixed
+public checksum discovery, no private download and no PATH fallback, then
+anonymously downloads and verifies every raw pinned LSP target. It records source,
+tag, URLs, sizes and hashes. It does not execute foreign binaries or claim UAT.
 
-After preflight, the tested WASI module is packaged again for the exact tag. The
-publication job consumes only this run's artifact, validates its receipt,
-archive layout, tagged source-file bytes, tested WASM hash and checksums, and verifies the remote tag still names the
-source. The post-build package-qualification.json is published alongside the archive and checksums. It creates a draft, uploads missing assets, compares existing assets
-byte-for-byte, and only then publishes. Existing bytes are never overwritten.
-Three fresh anonymous downloads must match before it reports
-`PUBLISHED_PUBLIC_VERIFIED`. A partial public release or different existing
-bytes fails closed and requires diagnosis rather than a clobber operation.
+The workflow uses the catalog build from `catalog-ci.sh`. `catalog_package.py`
+checks the shared source, manifest, locked dependencies, no-MCP policy and module
+size, then reuses the deterministic packager to create `terraphim-lsp-<release>.tar.gz`.
+The archive contains the catalog LICENSE, README, manifest and exact compiled
+`extension.wasm`; legacy root artifacts remain test outputs and are not published
+by this workflow. The qualification receipt binds the catalog source path/ID,
+tagged file bytes, tested module, archive and checksum manifest.
+
+The publish job consumes the verify job's immutable **artifact ID**. It validates
+all bytes and the original native source receipt again and verifies the remote tag still resolves to the tested source.
+It creates a draft, uploads only missing assets, compares existing assets byte for
+byte, and publishes only after they match. No tag moves, rebuilds, clobber uploads
+or repairs of incomplete public releases occur. A failed publish job can retry
+against the original artifact and draft. Fresh anonymous downloads of the archive,
+checksums and qualification receipt must match before publication is reported.
+
+Freeze generic documentation before native qualification. A normal merge can
+preserve the tested PR head as an ancestor of main; tag that exact head. A later
+docs-only commit may hold a sanitized UAT receipt while `qualified_commit` still
+names the tested source. Finally save a separate receipt for installation of the
+actual downloaded CI module; a source dev-build receipt cannot substitute for it.
 
 Configure the `zed-release` GitHub environment according to the project's
 release policy. Its job uses only the repository's `GITHUB_TOKEN` with
@@ -154,11 +164,20 @@ bash scripts/ci.sh
 cargo run --locked --offline --example release-contract
 python3 scripts/marketplace.py --tag vX.Y.Z --repo OWNER/REPOSITORY --out /tmp/zed-public-preflight-new
 # Catalog preflight additionally requires exact native qualification evidence:
-python3 scripts/marketplace.py --catalog --extension-path catalog/terraphim-lsp --tag vX.Y.Z --repo OWNER/REPOSITORY --qualified-commit FULL_SHA --qualification-url https://example.com/actual-evidence --out /tmp/zed-catalog-preflight-new
+python3 scripts/marketplace.py --catalog --extension-path catalog/terraphim-lsp --tag vX.Y.Z --repo OWNER/REPOSITORY --qualified-commit FULL_SHA --qualification-url "https://raw.githubusercontent.com/OWNER/REPOSITORY/<40-character-evidence-commit>/docs/qualifications/native.json" --out /tmp/zed-catalog-preflight-new
 ```
 
-The last command requires a clean checkout at the existing tag and a fresh
-output directory. It is intentionally expected to fail for the current
-unpublished public RC6 dependency. A failed gate is a blocker, not successful
-installation evidence. Actual release/catalog commands must be run only after
-reviewing the exact tag and the successful receipt.
+Replace OWNER/REPOSITORY with this public source repository, FULL_SHA with the
+exact native-tested source, and the evidence-commit placeholder with the full
+40-character Git commit containing the sanitized JSON receipt. A branch name,
+mutable URL or unrelated repository is rejected. The last command requires a
+clean checkout at the existing tag and a fresh output directory.
+
+The intended first catalog package tag is `v0.2.0`, matching the catalog manifest.
+It must be created only after the final source checks and native qualification
+pass. The repaired language-server dependency will be pinned separately to the
+actual public `terraphim_lsp-v1.22.0-rc.7` release; a stable extension version does
+not change that server's prerelease status. The existing RC6 pin stays unchanged
+until RC7's public assets are verified. Actual release/catalog commands require
+the reviewed exact tag and successful receipts; a failed gate is not installation
+evidence.

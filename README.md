@@ -15,12 +15,10 @@ no separate knowledge-graph engine and does not require a Zed application fork.
 
 In stock Zed, code actions swap existing KG synonyms and alternatives already
 saved in a Markdown annotation. Hover, diagnostics and writing actions use the
-shared LSP. The released RC6 server includes `terraphim.alternative.add_and_apply`
-for Zed's built-in LSP command picker: supply a JSON object with the document URI,
+shared LSP. To create an alternative, use `terraphim.alternative.add_and_apply`
+in Zed's built-in LSP command picker: supply a JSON object with the document URI,
 selection range and new text. The server asks Zed to apply the annotation edit.
-The earlier RC4 candidate flow passed native save/reopen and undo/redo checks; the
-released RC6 installation gate remains pending. See the
-[command-picker walkthrough](docs/alternative-authoring.md).
+See the [command-picker walkthrough](docs/alternative-authoring.md).
 The original `terraphim.alternative.add` still returns an edit for clients that
 apply it themselves. The adapter does not infer the current selection or provide
 the browser editor's visual panels.
@@ -29,13 +27,14 @@ Rust types and crates.
 
 ## Publication status
 
-This is scoped extension source with public build/release CI. It is not yet an
-installable Zed registry entry. The RC6 public LSP release and all six binary
-checksums have been verified. The first clean native installation failed at the
-GitHub metadata API with HTTP 403. The catalog downloader now uses the pinned
-public asset URLs directly, verifies checksums, and disables PATH fallback.
-A fresh native installation and saved-output qualification remain required
-before marketplace submission. See the [RC6 installation checklist](docs/rc6-install-qualification.md).
+The public release workflow packages **Terraphim LSP**, the catalog variant.
+[Released-package installation](docs/released-package-install.md) explains how
+to verify and load its compiled WASM without rebuilding it. Official Zed catalog
+availability requires a separate upstream review and registry build.
+
+[Qualification evidence](docs/qualification.md) distinguishes source tests,
+released-package installation and saved editor outputs. Each native receipt
+identifies the exact extension source, WASM and language-server binary used.
 
 Automatic provisioning supports macOS and Linux on x86_64 and ARM64. Windows
 automatic provisioning is not qualified; an explicit binary path remains possible.
@@ -52,8 +51,9 @@ bash scripts/ci.sh
 ```
 
 CI checks locked native/WASI builds, warnings-denied Clippy, actual package bytes
-and publication regressions. Reviewed immutable tags drive GitHub releases after
-anonymous dependency-download checks and artifact/source binding.
+and publication regressions. Immutable tags run verification. A manual dispatch at the exact tag publishes
+the catalog package after native source qualification, anonymous dependency
+checks and artifact/source binding; retries reuse the original CI artifact.
 
 [Marketplace instructions](docs/marketplace.md) describe the gates and Zed's
 human-authored catalog submission requirement. [Qualification](docs/qualification.md)
