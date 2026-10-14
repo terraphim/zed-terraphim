@@ -1,11 +1,7 @@
 # Author a new alternative with Zed's command picker
 
-Status: verified with a candidate RC4 server in stock Zed 1.23.3. The public
-RC4 GitHub binary release failed in the musl build lanes. The prospective RC6
-release and default-install verification remain pending.
-
 Zed's built-in **lsp command selector: toggle** action can pass JSON arguments
-to a language server. The prepared RC4 server advertises
+to a language server. Terraphim LSP advertises
 `terraphim.alternative.add_and_apply`, which asks Zed to apply the annotation
 and confirms that the document changed. This uses the stock application.
 
@@ -42,3 +38,6 @@ edits and client apply support. A rejection or stale document is reported as a
 failure. If acknowledgement or the matching document change times out, inspect
 the document before retrying: the edit may still arrive. A successful command
 returns an acknowledgement rather than a second edit to apply.
+
+The pinned server is the public RC7 release. Versioned native and package-install
+evidence is recorded in [qualification.md](qualification.md); the [RC7 checklist](rc7-install-qualification.md) describes the release gates.

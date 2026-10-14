@@ -31,6 +31,20 @@ class CatalogPackageTests(unittest.TestCase):
         self.assertEqual(manifest["id"], "terraphim-lsp")
         self.assertFalse(manifest.get("context_servers"))
 
+    def test_actual_catalog_attaches_json_only_for_passive_destination_tracking(self):
+        catalog_manifest = tomllib.loads(
+            (package.ROOT / catalog_package.PATH / "extension.toml").read_text()
+        )
+        server = catalog_manifest["language_servers"]["terraphim-lsp"]
+        self.assertEqual(server["languages"], ["Markdown", "JSON", "JSONC"])
+        self.assertEqual(server["language_ids"], {"JSON": "json", "JSONC": "jsonc"})
+        legacy_manifest = tomllib.loads((package.ROOT / "extension.toml").read_text())
+        self.assertEqual(
+            legacy_manifest["language_servers"]["terraphim-lsp"]["languages"],
+            ["Markdown"],
+        )
+        self.assertNotIn("language_ids", legacy_manifest["language_servers"]["terraphim-lsp"])
+
     def test_catalog_entry_points_to_the_manifest_subdirectory(self):
         changed = catalog.registry_entry(
             "", "terraphim-lsp", "0.2.0", catalog_package.PATH

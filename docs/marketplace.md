@@ -175,9 +175,10 @@ clean checkout at the existing tag and a fresh output directory.
 
 The intended first catalog package tag is `v0.2.0`, matching the catalog manifest.
 It must be created only after the final source checks and native qualification
-pass. The repaired language-server dependency will be pinned separately to the
-actual public `terraphim_lsp-v1.22.0-rc.7` release; a stable extension version does
-not change that server's prerelease status. The existing RC6 pin stays unchanged
-until RC7's public assets are verified. Actual release/catalog commands require
+pass. The language-server dependency is pinned separately to the verified public
+[`terraphim_lsp-v1.22.0-rc.7` release](https://github.com/terraphim/terraphim-ai/releases/tag/terraphim_lsp-v1.22.0-rc.7);
+a stable extension version does not change that server's prerelease status.
+The catalog attaches JSON and JSONC only for passive export-destination tracking;
+Markdown features remain restricted to Markdown. Actual release/catalog commands require
 the reviewed exact tag and successful receipts; a failed gate is not installation
 evidence.

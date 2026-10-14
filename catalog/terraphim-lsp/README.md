@@ -5,6 +5,10 @@ for Markdown in stock Zed. This catalog package uses the same Rust adapter and
 pinned language server as the existing Terraphim extension. The language server
 uses Terraphim's shared crates for alternatives and `synonyms::` relationships.
 
+JSON and JSONC are attached only to track open export destinations. Unsaved
+changes cause graph export to refuse the write, preserving the buffer and disk.
+They do not receive Markdown alternatives, Lab analysis or diagnostics.
+
 This package supplies the language server only. It downloads verified release
 assets from fixed, pinned GitHub URLs without a metadata API request or PATH
 fallback, or uses the user's explicit `lsp.terraphim-lsp.binary.path`.

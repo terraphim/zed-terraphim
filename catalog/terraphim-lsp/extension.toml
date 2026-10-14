@@ -8,5 +8,6 @@ repository = "https://github.com/terraphim/zed-terraphim"
 
 [language_servers.terraphim-lsp]
 name = "Terraphim LSP"
-languages = ["Markdown"]
+languages = ["Markdown", "JSON", "JSONC"]
+language_ids = { JSON = "json", JSONC = "jsonc" }
 

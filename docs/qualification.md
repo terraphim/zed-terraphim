@@ -132,6 +132,24 @@ prepared steps. Its earlier metadata-API HTTP 403 profile remains separate from
 the successful direct-download profile. RC4/RC5 source and release history above
 remain unchanged.
 
+## RC7 dirty-destination repair (14 October 2026)
+
+The public [RC7 server release](https://github.com/terraphim/terraphim-ai/releases/tag/terraphim_lsp-v1.22.0-rc.7)
+is built from source `4fb62d337c306a9105c5e872f3400f3052a2caef`. All six binary
+assets were anonymously downloaded and checked against the release checksums.
+Actual downloaded macOS ARM64 and universal binaries passed protocol checks for
+JSON and JSONC dirty-destination refusal after buffer changes, with a changed
+pending graph payload.
+Those process-level checks do not establish stock-Zed UI behavior.
+
+The catalog registers JSON and JSONC as passive buffers for this protection;
+they receive no Markdown alternatives, Lab analysis or diagnostics. Follow the
+[RC7 checklist](rc7-install-qualification.md) on the final source to reproduce the
+previous interior-edit failure, require visible refusal and preserve both the
+unsaved buffer and disk. Publication also requires the remaining native checks
+and a separately verified compiled-package installation. Historical RC6 evidence
+above remains unchanged.
+
 ## Compiled release-package qualification
 
 Follow [released-package installation](released-package-install.md) in a second

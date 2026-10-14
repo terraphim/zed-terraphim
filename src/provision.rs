@@ -22,7 +22,7 @@
 //!
 //! # Release sources
 //!
-//! The public catalog uses fixed GitHub asset URLs for the shared rc.6 pin,
+//! The public catalog uses fixed GitHub asset URLs for the shared rc.7 pin,
 //! with no metadata API request or PATH fallback. Its release must exist and
 //! pass anonymous download checks before extension publication.
 //! The combined legacy adapter retains its Gitea-first source order, then
@@ -30,7 +30,7 @@
 //! GitHub. Each source is checked against its own `checksums.txt`.
 //!
 //! The captured rc.3 Gitea fixtures remain historical parser/provisioning
-//! evidence. They are not checksums or installation evidence for rc.6.
+//! evidence. They are not checksums or installation evidence for rc.7.
 
 use sha2::{Digest, Sha256};
 use std::fmt;
@@ -82,7 +82,7 @@ pub const LSP: BinarySpec = BinarySpec {
     repo: "terraphim/terraphim-ai",
     github_discovery: GithubDiscovery::ApiListing,
     gitea: Some(GITEA_RELEASES),
-    tag: "terraphim_lsp-v1.22.0-rc.6",
+    tag: "terraphim_lsp-v1.22.0-rc.7",
     asset_stem: "terraphim-lsp",
     checksum_file: "checksums.txt",
     dir_prefix: "terraphim-lsp",
@@ -983,7 +983,7 @@ mod tests {
         );
         assert_eq!(
             binary_path(&mcp),
-            "terraphim-lsp-terraphim_lsp-v1.22.0-rc.6/terraphim_mcp_server"
+            "terraphim-lsp-terraphim_lsp-v1.22.0-rc.7/terraphim_mcp_server"
         );
     }
 
@@ -1029,7 +1029,7 @@ mod tests {
         }
     }
 
-    /// Preserve the real historical capture without re-labelling it as rc.6.
+    /// Preserve the real historical capture without re-labelling it as rc.7.
     #[test]
     fn fixture_is_the_historical_rc3_release() {
         assert_eq!(HISTORICAL_RC3.tag, "terraphim_lsp-v1.22.0-rc.3");
@@ -1154,11 +1154,11 @@ mod tests {
     fn install_layout_is_versioned() {
         assert_eq!(
             install_dir(&LSP),
-            "terraphim-lsp-terraphim_lsp-v1.22.0-rc.6"
+            "terraphim-lsp-terraphim_lsp-v1.22.0-rc.7"
         );
         assert_eq!(
             binary_path(&LSP),
-            "terraphim-lsp-terraphim_lsp-v1.22.0-rc.6/terraphim-lsp"
+            "terraphim-lsp-terraphim_lsp-v1.22.0-rc.7/terraphim-lsp"
         );
     }
 
@@ -2040,7 +2040,7 @@ mod catalog_configuration_tests {
             for (asset, expected) in assets.iter().zip(names) {
                 assert_eq!(asset.name, expected);
                 assert_eq!(asset.download_url, format!(
-                    "https://github.com/terraphim/terraphim-ai/releases/download/terraphim_lsp-v1.22.0-rc.6/{expected}"
+                    "https://github.com/terraphim/terraphim-ai/releases/download/terraphim_lsp-v1.22.0-rc.7/{expected}"
                 ));
             }
         }
@@ -2098,8 +2098,8 @@ mod catalog_configuration_tests {
     }
 
     #[test]
-    fn shared_public_release_pin_targets_rc6() {
-        assert_eq!(LSP.tag, "terraphim_lsp-v1.22.0-rc.6");
+    fn shared_public_release_pin_targets_rc7() {
+        assert_eq!(LSP.tag, "terraphim_lsp-v1.22.0-rc.7");
         assert_eq!(LSP.repo, "terraphim/terraphim-ai");
         assert_eq!(LSP.checksum_file, "checksums.txt");
         if cfg!(feature = "public-catalog") {
