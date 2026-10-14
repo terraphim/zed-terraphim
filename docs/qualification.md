@@ -102,11 +102,18 @@ crates.io dependencies. Its crate was published, but the GitHub binary release
 failed in the two musl lanes. Its [prepared checklist](rc4-install-qualification.md)
 and the retained RC3 fixtures do not prove a default release installation.
 
-## Prospective public RC5 installation (14 October 2026)
+## Historical RC5 installation preparation (14 October 2026)
 
-The prepared shared pin is `terraphim_lsp-v1.22.0-rc.5`. Its public assets,
+RC5 published its crate and built all six binaries, but final release assembly
+rejected x86_64 log names. Its GitHub binary release was not published. The
+[RC5 checklist](rc5-install-qualification.md) and untouched isolated input fixture
+remain historical preparation, not proof of a default installation.
+
+## Prospective public RC6 installation (14 October 2026)
+
+The prepared shared pin is `terraphim_lsp-v1.22.0-rc.6`. Its public assets,
 checksums and native default-download results remain pending. The candidate
 checks above retain their original identities. The next run follows the
-[RC5 isolated installation checklist](rc5-install-qualification.md), using the
+[RC6 isolated installation checklist](rc6-install-qualification.md), using the
 catalog package without a binary override and inspecting the actual provisioned
 path. A successful local build alone cannot qualify release installation.
