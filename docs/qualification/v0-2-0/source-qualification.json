@@ -1,0 +1,185 @@
+{
+  "schema": 1,
+  "status": "PASS",
+  "scope": "stock-zed-source",
+  "qualificationMeaning": "The eight listed functional saved-output checks passed on stock Zed. The visual evidence limitation below remains explicit. This is source-dev installation, not a released compiled extension package or registry install.",
+  "qualifiedCommit": "b75b475adebe42604ac9ba86023b884c7049bc58",
+  "extensionId": "terraphim-lsp",
+  "extensionPath": "catalog/terraphim-lsp",
+  "version": "0.2.0",
+  "host": {
+    "application": "Zed",
+    "version": "1.23.3",
+    "platform": "macOS ARM64"
+  },
+  "sourceInstallWasm": {
+    "sha256": "a062ba4648a91723db1bd7712dab48cd27546c9413ac6d238a812a8d9020e95c",
+    "bytes": 562871
+  },
+  "server": {
+    "releaseTag": "terraphim_lsp-v1.22.0-rc.7",
+    "source": "4fb62d337c306a9105c5e872f3400f3052a2caef",
+    "sha256": "ed60697248dfbef1d3b731e5f758fd7f02c00c74b3da8581df11dd78fa2e32cd",
+    "bytes": 13497968
+  },
+  "checks": {
+    "defaultProvisioning": "PASS",
+    "cacheRestart": "PASS",
+    "createApplySaveUndoRedoReopen": "PASS",
+    "synonymGraphExportTwice": "PASS",
+    "dirtyJsonRefusal": "PASS",
+    "trimDoneAnchorShift": "PASS",
+    "cleanExportDirtyRefusal": "PASS",
+    "releasedGrepSharedSynonym": "PASS"
+  },
+  "savedOutputs": [
+    {
+      "name": "01-created-saved.md",
+      "sha256": "fa6ab1275ca14df7920b2e05edd9a421e322af5c400bbeb5aca57cda276a595c",
+      "bytes": 567
+    },
+    {
+      "name": "02-undo-saved.md",
+      "sha256": "5adec513de2cc1672ff08e7de3bdff4cf8ddd37fce8e6f2fa39110c9fcbf503f",
+      "bytes": 73
+    },
+    {
+      "name": "03-redo-reopened.md",
+      "sha256": "fa6ab1275ca14df7920b2e05edd9a421e322af5c400bbeb5aca57cda276a595c",
+      "bytes": 567
+    },
+    {
+      "name": "04-swap-saved.md",
+      "sha256": "52ca74f9b11a29996fe9bafa009e0d2d3ba5bc6ce3a7319dc48cc041ba543626",
+      "bytes": 573
+    },
+    {
+      "name": "05-exported-graph.json",
+      "sha256": "4c0bfd9964b0f42f35afbf0338fe4e8bc0d11fc109928ca31c06cc48b9a3756e",
+      "bytes": 281
+    },
+    {
+      "name": "06-repeated-export.json",
+      "sha256": "38665290c40b3d4bcb38ef1ced867087c1ae0e01c6b32eae14ca1db553d6f420",
+      "bytes": 281
+    },
+    {
+      "name": "07-grep-before-sharing.json",
+      "sha256": "fc56c1d4a44f506af409eee56121a46f3cc8477672d2dc34607a5559e163d617",
+      "bytes": 344
+    },
+    {
+      "name": "08-grep-with-authored-synonym.json",
+      "sha256": "9551f2c6e8d5834edf27dae8a21666c6c419dbba1135953a68f8629fbf3a6d1a",
+      "bytes": 885
+    },
+    {
+      "name": "09-hazard-pending-source.md",
+      "sha256": "af0d51cc4f95d7e92b0b53844b583891178fde79347fa64b7cb917d2b07ae387",
+      "bytes": 650
+    },
+    {
+      "name": "10-dirty-graph-disk-before.json",
+      "sha256": "38665290c40b3d4bcb38ef1ced867087c1ae0e01c6b32eae14ca1db553d6f420",
+      "bytes": 281
+    },
+    {
+      "name": "11-dirty-graph-disk-after-refusal.json",
+      "sha256": "38665290c40b3d4bcb38ef1ced867087c1ae0e01c6b32eae14ca1db553d6f420",
+      "bytes": 281
+    },
+    {
+      "name": "12-preserved-interior-saved.json",
+      "sha256": "64dcdc420d874af43dc5efae59aaedac27173de104040df8f64949f4bfb36ee9",
+      "bytes": 282
+    },
+    {
+      "name": "13-export-after-save-with-hazard.json",
+      "sha256": "72a992b64475e3ebfc78665900cb106de119f3e05d0b8267b1b28ff8a2d9dafc",
+      "bytes": 395
+    },
+    {
+      "name": "14-trim-done-saved.md",
+      "sha256": "5e48e63b115302bb81525d6eb8a348de696fdd943e974c5fb9167cd9b104c033",
+      "bytes": 6386
+    },
+    {
+      "name": "15-post-trim-edit-saved.md",
+      "sha256": "d58874b0ff6548e0bffb59de36a8e9151fba437c5555de0b596c463e00008cc9",
+      "bytes": 6396
+    },
+    {
+      "name": "16-clean-export.md",
+      "sha256": "14c08e479f09302aa039dbd69bf8af6150a99d58b034001cf0e357ac47e28b8c",
+      "bytes": 2137
+    },
+    {
+      "name": "17-dirty-clean-disk-after-refusal.md",
+      "sha256": "14c08e479f09302aa039dbd69bf8af6150a99d58b034001cf0e357ac47e28b8c",
+      "bytes": 2137
+    },
+    {
+      "name": "18-preserved-clean-edit-saved.md",
+      "sha256": "8f641f475698ac2ce5ac3216fd530140cbfc111479511d37825ba75a4d28b6ff",
+      "bytes": 2163
+    }
+  ],
+  "dirtyJson": {
+    "actualPendingChange": "Saved Markdown adds Hazard; existing disk graph contains only Risk/Concern. The unsaved interior name is UNSAVED INTERIOR RC7.",
+    "visibleRefusal": "terraphim-lsp: the export buffer has unconfirmed changes; save or close it before exporting again.",
+    "diskBefore": "10-dirty-graph-disk-before.json",
+    "diskAfterRefusal": "11-dirty-graph-disk-after-refusal.json",
+    "preservedBufferSaved": "12-preserved-interior-saved.json",
+    "subsequentSuccess": "13-export-after-save-with-hazard.json",
+    "bufferObservation": "CUA screenshot showed exact interior text and dirty tab after refusal; subsequent native Save produced actual preserved bytes."
+  },
+  "trim": {
+    "level": "Tighten more ~20%",
+    "action": "Done",
+    "ghostCount": 11,
+    "prefix": "UPDATED ",
+    "anchorDelta": 8,
+    "cleanBytes": 2137
+  },
+  "passiveJsonScope": "Native code-action invocation in JSON produced no alternatives/Trim/Lab action menu. Full passive feature responses are separately verified by the actual released server protocol receipts; this UI observation alone is not protocol proof.",
+  "visualEvidence": {
+    "status": "CUA_TRANSCRIPT_ONLY_NO_PERSISTED_IMAGE",
+    "observedImages": "Tool transcript includes actual refusal toast, dirty JSON interior before/after, Trim preview, clean export and dirty-clean refusal/preserved buffer.",
+    "captureAttempts": [
+      "macOS Screenshot app launcher timed out; helper launch failed after a long tool stall",
+      "CmdShift4 did not invoke capture; following Space entered the editor and was immediately undone before save",
+      "One Preview File > Take Screenshot > From Window attempt produced no overlay or new image"
+    ],
+    "limitation": "No durable screenshot file is claimed. No alternate capture technology or fabricated image was used."
+  },
+  "automationNotes": [
+    "Prefix save preceded asynchronous annotation reconciliation; second native save after settlement produced all11 correctly shifted anchors.",
+    "Screenshot shortcut inserted one space into dirty JSON; native undo removed that space before preserved bytes were saved."
+  ],
+  "scopeLimits": [
+    "Native source installation only; actual compiled release archive and official registry installation remain pending.",
+    "No all41 browser-editor UI parity claim.",
+    "JSONC dirty handling has actual released-binary protocol proof; this native default graph filename is JSON.",
+    "The Trim fixture includes preauthored annotations and is explicitly input; new Concern/Hazard authoring used the separate plain Markdown document.",
+    "Zed application fork remains separate."
+  ],
+  "inputSeparation": {
+    "plainSource": "The initial Risk sentence is the independently identified plain input; Concern and Hazard annotations were created through native commands. Native undo output02 equals that original input.",
+    "plainInputSha256": "5adec513de2cc1672ff08e7de3bdff4cf8ddd37fce8e6f2fa39110c9fcbf503f",
+    "trimFixture": "Trim starts from a separately preauthored fixture. Its existing synonym annotation is input; Done generated the11 ghost annotations in output14.",
+    "trimInputSha256": "80b4a8b625920ff9a3b6581c5f64b9fbb232cb79a813fdb573a0b0ba4c5694d4"
+  },
+  "releasedGrep": {
+    "version": "1.21.19",
+    "binarySha256": "ce20e2bf87c6753c717dade4ac7baac98b05d0be9cb39af1f3afbcbf6e5c47de",
+    "release": "https://github.com/terraphim/terraphim-clients/releases/tag/v1.21.19",
+    "searchOnly": true,
+    "query": "concern",
+    "baselinePassages": 0,
+    "sharedGraphPassages": 1,
+    "graphFile": "06-repeated-export.json",
+    "sourcePassage": "Risk is manageable. The release decision is to retain a backup supplier.",
+    "synthesis": "Not exercised in this bounded extension qualification."
+  },
+  "review": "Prepared for independent review; publication admission remains a separate operator decision."
+}
