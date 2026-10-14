@@ -7,3 +7,5 @@ The numbered files are actual saved outputs. Outputs 01–04 prove authoring, un
 The functional checks passed. Native CUA screenshots showed the refusal and preserved buffers, but native Screenshot and Preview capture attempts did not produce a durable image. No downloadable screenshot is claimed. The receipt records this visual-evidence limitation instead of substituting an image or headless test.
 
 This evidence covers a source development installation. A separate receipt must verify the actual downloaded compiled package after release. Official Zed catalog acceptance and installation remain separate. It does not certify all 41 browser-editor requirements or the Zed application fork.
+
+The separately [verified compiled-package installation](compiled-package/README.md) loads the actual downloaded CI WASM. Its [receipt](compiled-package/compiled-package-qualification.json) records the archive/module identities and fresh native saved outputs.
