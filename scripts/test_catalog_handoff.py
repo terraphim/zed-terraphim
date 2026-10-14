@@ -10,6 +10,7 @@ import unittest
 import catalog
 import marketplace
 import prepare_catalog
+from test_package_qualification import Fixture
 
 
 class CatalogHandoffTests(unittest.TestCase):
@@ -36,6 +37,8 @@ class CatalogHandoffTests(unittest.TestCase):
         )
         self.source = self.git("rev-parse", "HEAD")
         self.receipt = {
+            "status": "PASS",
+            "catalog": True,
             "source": self.source,
             "tag": "v0.2.0",
             "extensionId": "terraphim-lsp",
@@ -85,6 +88,63 @@ class CatalogHandoffTests(unittest.TestCase):
             (self.root / "extensions.toml").read_bytes(),
         )
         self.assertFalse((output / "pr-body.md").exists())
+
+    def test_release_identity_uses_explicit_tagged_source_not_tooling_checkout(self):
+        self.git("tag", "v0.2.0")
+        self.assertEqual(prepare_catalog.validate_release_source(
+            self.root, self.receipt, "v0.2.0"), self.source)
+        (self.root / "extensions.toml").write_text("changed source")
+        with self.assertRaisesRegex(marketplace.GateError, "clean tagged"):
+            prepare_catalog.validate_release_source(self.root, self.receipt, "v0.2.0")
+        self.git("checkout", "--", "extensions.toml")
+        (self.root / "later.txt").write_text("tooling may follow release")
+        self.git("add", "later.txt")
+        self.git("-c", "user.name=Test", "-c", "user.email=test@example.invalid",
+                 "-c", "commit.gpgsign=false", "commit", "-qm", "later tooling")
+        with self.assertRaisesRegex(marketplace.GateError, "tagged"):
+            prepare_catalog.validate_release_source(self.root, self.receipt, "v0.2.0")
+
+    def test_locked_upstream_inputs_fail_closed_and_preserve_exact_bytes(self):
+        with self.assertRaisesRegex(marketplace.GateError, "lockfile"):
+            prepare_catalog.locked_inputs(self.root)
+        manifest = self.root / "package.json"
+        lock = self.root / "pnpm-lock.yaml"
+        manifest.write_text(json.dumps({"volta": {"node": "24.21.0"}}))
+        lock.write_text("lockfileVersion: '9.0'\n")
+        saved = prepare_catalog.locked_inputs(self.root)
+        prepare_catalog.verify_locked_inputs(self.root, saved)
+        lock.write_text("lockfileVersion: '10.0'\n")
+        with self.assertRaisesRegex(marketplace.GateError, "changed"):
+            prepare_catalog.verify_locked_inputs(self.root, saved)
+        lock.unlink()
+        lock.symlink_to(manifest)
+        with self.assertRaisesRegex(marketplace.GateError, "regular"):
+            prepare_catalog.locked_inputs(self.root)
+
+    def test_actual_release_archive_and_receipt_are_required(self):
+        fixture = Fixture(self, extension_path="catalog/terraphim-lsp")
+        fixture.qualify()
+        data = [fixture.packaged.tarball.read_bytes(), fixture.packaged.sums.read_bytes(),
+                fixture.receipt.read_bytes()]
+        result = prepare_catalog.validate_released_package(
+            fixture.root, fixture.proof, fixture.tag, *data)
+        self.assertEqual(result["archive"]["name"], fixture.packaged.tarball.name)
+        for index in range(3):
+            changed = list(data)
+            if index == 2:
+                value = json.loads(changed[index]); value["source"] = "f" * 40
+                changed[index] = json.dumps(value).encode()
+            else:
+                changed[index] += b"changed"
+            with self.subTest(index=index), self.assertRaises(marketplace.GateError):
+                prepare_catalog.validate_released_package(
+                    fixture.root, fixture.proof, fixture.tag, *changed)
+
+    def test_runtime_declaration_change_requires_tooling_review(self):
+        (self.root / "package.json").write_text(json.dumps({"volta": {"node": "25.0.0"}}))
+        (self.root / "pnpm-lock.yaml").write_text("lockfileVersion: '9.0'\n")
+        with self.assertRaisesRegex(marketplace.GateError, "runtime"):
+            prepare_catalog.locked_inputs(self.root)
 
     def test_unrelated_staged_changes_are_refused(self):
         self.prepare()
