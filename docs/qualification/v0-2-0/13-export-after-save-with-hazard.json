@@ -1,0 +1,23 @@
+{
+  "name": "Document alternatives",
+  "data": {
+    "concern": {
+      "id": 1,
+      "nterm": "risk",
+      "display_value": "Risk",
+      "pinned": false
+    },
+    "risk": {
+      "id": 1,
+      "nterm": "risk",
+      "display_value": "Risk",
+      "pinned": false
+    },
+    "hazard": {
+      "id": 1,
+      "nterm": "risk",
+      "display_value": "Risk",
+      "pinned": false
+    }
+  }
+}
