@@ -29,7 +29,10 @@ the edit. Run `terraphim.export_knowledge_graph` through the same picker with:
 
 Save the generated `brief.knowledge-graph.json`. Its `risk` and `concern`
 entries share a concept ID; released `terraphim-grep` can consume that graph.
-The source document retains its annotation.
+The source document retains its annotation. No pre-existing thesaurus is required
+to author this alternative. Continue with the [CLI walkthrough](cli-workflows.md)
+to search notes with the exported graph using `terraphim-grep`, then explicitly
+capture and retrieve a decision with `terraphim-agent`.
 
 The original `terraphim.alternative.add` returns a WorkspaceEdit for clients
 that apply it themselves. Zed's generic picker only logs a command's return
