@@ -20,18 +20,17 @@
 //! Only raw (uncompressed) release assets are supported: the host extracts
 //! archives before the extension could hash them.
 //!
-//! # Sources (rc.3)
+//! # Release sources
 //!
-//! The rc.3 language server is published on the internal Gitea
-//! (`git.terraphim.cloud`), in the public release-only repository
-//! `terraphim/terraphim-lsp-releases` (no source; the source stays private in
-//! `terraphim/terraphim-ai`). A download is tried from that release first
-//! (its URLs are the `releases/download/<tag>/<asset>` scheme, so no API
-//! lookup is needed: the host's `download_file`, which sends no credentials,
-//! is the only call), then from the GitHub release, then `PATH`. Each source
-//! is verified against its own `checksums.txt`. Gitea is reachable from the
-//! tailnet only, so off the tailnet (or when an asset is missing) the
-//! download fails and the next source is used.
+//! The public catalog uses fixed GitHub asset URLs for the shared rc.7 pin,
+//! with no metadata API request or PATH fallback. Its release must exist and
+//! pass anonymous download checks before extension publication.
+//! The combined legacy adapter retains its Gitea-first source order, then
+//! GitHub and finally `PATH`; a missing internal release falls through to
+//! GitHub. Each source is checked against its own `checksums.txt`.
+//!
+//! The captured rc.3 Gitea fixtures remain historical parser/provisioning
+//! evidence. They are not checksums or installation evidence for rc.7.
 
 use sha2::{Digest, Sha256};
 use std::fmt;
@@ -39,11 +38,22 @@ use std::fs;
 use std::io::Read;
 use std::path::Path;
 
+/// How a pinned GitHub release selects its downloadable assets.
+#[derive(Debug, Clone, Copy, PartialEq, Eq)]
+pub enum GithubDiscovery {
+    /// Ask the host to list the release through GitHub's metadata API.
+    ApiListing,
+    /// Use fixed tag/target URLs and select the asset from `checksums.txt`.
+    PinnedChecksums,
+}
+
 /// A pinned release of one binary.
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
 pub struct BinarySpec {
     /// GitHub repository, `owner/name` (also the repository path on Gitea).
     pub repo: &'static str,
+    /// Asset-discovery policy for the GitHub source.
+    pub github_discovery: GithubDiscovery,
     /// URL of the internal Gitea repository that holds the release assets
     /// (public on the tailnet, assets only), tried before GitHub; `None` for
     /// binaries published on GitHub only.
@@ -64,15 +74,15 @@ pub struct BinarySpec {
 }
 
 /// The internal Gitea repository (tailnet only, public, release assets only)
-/// that hosts the rc.3 release channel. The source stays in the private
-/// `terraphim/terraphim-ai`.
+/// retained by the combined legacy adapter. The catalog never contacts it.
 pub const GITEA_RELEASES: &str = "https://git.terraphim.cloud/terraphim/terraphim-lsp-releases";
 
 /// The `terraphim-lsp` language server from terraphim-ai.
 pub const LSP: BinarySpec = BinarySpec {
     repo: "terraphim/terraphim-ai",
+    github_discovery: GithubDiscovery::ApiListing,
     gitea: Some(GITEA_RELEASES),
-    tag: "terraphim_lsp-v1.22.0-rc.3",
+    tag: "terraphim_lsp-v1.22.0-rc.7",
     asset_stem: "terraphim-lsp",
     checksum_file: "checksums.txt",
     dir_prefix: "terraphim-lsp",
@@ -82,11 +92,16 @@ pub const LSP: BinarySpec = BinarySpec {
 
 /// Select the same release pin for legacy and public catalog installations.
 ///
-/// The public catalog package avoids the private-network Gitea attempt; the
-/// existing combined adapter retains its original source order.
+/// The public catalog uses fixed public asset URLs and no PATH fallback. The
+/// existing combined adapter retains its original source order and discovery.
 pub const fn configured_lsp() -> BinarySpec {
     if cfg!(feature = "public-catalog") {
-        BinarySpec { gitea: None, ..LSP }
+        BinarySpec {
+            gitea: None,
+            github_discovery: GithubDiscovery::PinnedChecksums,
+            path_fallback: false,
+            ..LSP
+        }
     } else {
         LSP
     }
@@ -95,6 +110,7 @@ pub const fn configured_lsp() -> BinarySpec {
 /// The `terraphim_mcp_server` context server from terraphim-clients.
 pub const MCP: BinarySpec = BinarySpec {
     repo: "terraphim/terraphim-clients",
+    github_discovery: GithubDiscovery::ApiListing,
     gitea: None,
     tag: "terraphim_mcp_server-v1.21.18-rc.1",
     asset_stem: "terraphim_mcp_server",
@@ -243,7 +259,7 @@ impl std::error::Error for ProvisionError {}
 /// Release asset names for `platform`, most preferred first.
 ///
 /// macOS prefers the universal binary, then the per-architecture one
-/// (signing is release-dependent; the rc.3 macOS assets are unsigned);
+/// (signing is release-dependent; verify the selected release manifest);
 /// Linux prefers glibc on x86_64 and musl elsewhere. Windows is deferred
 /// (issue #16) and reported as unsupported.
 pub fn candidate_assets(
@@ -287,6 +303,29 @@ pub fn gitea_release(spec: &BinarySpec, platform: Platform) -> Result<Vec<Asset>
         .into_iter()
         .map(|name| Asset {
             download_url: gitea_asset_url(base, spec.tag, &name),
+            name,
+        })
+        .collect())
+}
+
+/// Known public URLs for the pinned GitHub release and platform.
+///
+/// These URLs do not require a GitHub metadata API request. Availability and
+/// asset choice are established by the downloaded checksum file; the binary
+/// must still pass its exact SHA-256 check before it can be started.
+pub fn github_pinned_release(
+    spec: &BinarySpec,
+    platform: Platform,
+) -> Result<Vec<Asset>, ProvisionError> {
+    let mut names = candidate_assets(spec, platform)?;
+    names.push(spec.checksum_file.to_string());
+    Ok(names
+        .into_iter()
+        .map(|name| Asset {
+            download_url: format!(
+                "https://github.com/{}/releases/download/{}/{name}",
+                spec.repo, spec.tag,
+            ),
             name,
         })
         .collect())
@@ -515,6 +554,17 @@ pub fn failure_message(spec: &BinarySpec, platform: Platform, error: &ProvisionE
     )
 }
 
+// Keep the lookup lazy: a disabled fallback must never ask the host for PATH.
+fn fallback_from_path(
+    spec: &BinarySpec,
+    lookup: impl FnOnce() -> Option<String>,
+) -> Option<String> {
+    spec.path_fallback
+        .then(lookup)
+        .flatten()
+        .filter(|path| !path.trim().is_empty())
+}
+
 /// Status text when provisioning failed but a `PATH` binary is used.
 pub fn path_fallback_message(
     spec: &BinarySpec,
@@ -585,7 +635,7 @@ pub fn resolve(
         Err(error) => {
             // Leave nothing executable or half-written behind (I2).
             let _ = fs::remove_dir_all(root.join(install_dir(spec)));
-            match host.which(spec.asset_stem).filter(|p| !p.trim().is_empty()) {
+            match fallback_from_path(spec, || host.which(spec.asset_stem)) {
                 Some(path) => {
                     host.set_status(Status::Failed(path_fallback_message(
                         spec, platform, &error, &path,
@@ -624,7 +674,7 @@ fn install_from_sources(
     candidate_assets(spec, platform)?;
     let mut announced = false;
     let Some(base) = spec.gitea else {
-        return install_listed(spec, platform, root, host, &mut announced);
+        return install_github(spec, platform, root, host, &mut announced);
     };
     let from_gitea = gitea_release(spec, platform).and_then(|assets| {
         install(
@@ -641,7 +691,7 @@ fn install_from_sources(
         Ok(path) => return Ok(path),
         Err(error) => error,
     };
-    install_listed(spec, platform, root, host, &mut announced).map_err(|github| {
+    install_github(spec, platform, root, host, &mut announced).map_err(|github| {
         ProvisionError::Sources {
             gitea_base: base.to_string(),
             gitea: Box::new(gitea),
@@ -650,18 +700,60 @@ fn install_from_sources(
     })
 }
 
-/// Installs from the GitHub release the host lists.
-fn install_listed(
+/// Installs from GitHub using the binary's explicit discovery policy.
+fn install_github(
     spec: &BinarySpec,
     platform: Platform,
     root: &Path,
     host: &mut impl Host,
     announced: &mut bool,
 ) -> Result<String, ProvisionError> {
-    let assets = host
-        .release_assets(spec.repo, spec.tag)
-        .map_err(ProvisionError::Host)?;
-    install(spec, platform, root, host, assets, Pick::Listed, announced)
+    let (assets, pick) = match spec.github_discovery {
+        GithubDiscovery::ApiListing => (
+            host.release_assets(spec.repo, spec.tag)
+                .map_err(ProvisionError::Host)?,
+            Pick::Listed,
+        ),
+        GithubDiscovery::PinnedChecksums => {
+            (github_pinned_release(spec, platform)?, Pick::ByChecksums)
+        }
+    };
+    install(spec, platform, root, host, assets, pick, announced)
+}
+
+// The same pure selection path serves direct Gitea and pinned GitHub assets.
+fn pick_checksummed_asset<'a>(
+    candidates: &[String],
+    assets: &'a [Asset],
+    checksum_text: &str,
+) -> Result<(&'a Asset, String), ProvisionError> {
+    // Only a missing entry moves on to the next candidate; every
+    // other checksum error (a malformed file, conflicting entries)
+    // fails closed rather than installing a lower-priority asset.
+    let mut chosen = None;
+    for name in candidates {
+        match lookup_checksum(checksum_text, name) {
+            Ok(expected) => {
+                let asset = assets
+                    .iter()
+                    .find(|asset| &asset.name == name)
+                    .ok_or_else(|| ProvisionError::NoMatchingAsset {
+                        candidates: candidates.to_vec(),
+                    })?;
+                chosen = Some((asset, expected));
+                break;
+            }
+            // With direct pinned URLs, `checksums.txt` is the
+            // listing: like `pick_asset` on a GitHub release, the first
+            // candidate present wins. Whichever is chosen is verified
+            // against its own entry before it is installed.
+            Err(ProvisionError::ChecksumEntryMissing { .. }) => continue,
+            Err(error) => return Err(error),
+        }
+    }
+    chosen.ok_or_else(|| ProvisionError::NoMatchingAsset {
+        candidates: candidates.to_vec(),
+    })
 }
 
 /// Downloads, verifies and installs the pinned release from `assets`;
@@ -718,36 +810,7 @@ fn install(
     })?;
     let (asset, expected) = match listed {
         Some(asset) => (asset, lookup_checksum(&checksum_text, &asset.name)?),
-        None => {
-            // Only a missing entry moves on to the next candidate; every
-            // other checksum error (a malformed file, conflicting entries)
-            // fails closed rather than installing a lower-priority asset.
-            let mut chosen = None;
-            for name in &candidates {
-                match lookup_checksum(&checksum_text, name) {
-                    Ok(expected) => {
-                        let asset =
-                            assets
-                                .iter()
-                                .find(|asset| &asset.name == name)
-                                .ok_or_else(|| ProvisionError::NoMatchingAsset {
-                                    candidates: candidates.clone(),
-                                })?;
-                        chosen = Some((asset, expected));
-                        break;
-                    }
-                    // No listing exists on Gitea, so `checksums.txt` is the
-                    // listing: like `pick_asset` on a GitHub release, the first
-                    // candidate present wins. Whichever is chosen is verified
-                    // against its own entry before it is installed.
-                    Err(ProvisionError::ChecksumEntryMissing { .. }) => continue,
-                    Err(error) => return Err(error),
-                }
-            }
-            chosen.ok_or_else(|| ProvisionError::NoMatchingAsset {
-                candidates: candidates.clone(),
-            })?
-        }
+        None => pick_checksummed_asset(&candidates, &assets, &checksum_text)?,
     };
 
     let temporary_rel = format!("{dir}/{}.download", asset.name);
@@ -805,6 +868,11 @@ mod tests {
 
     const CHECKSUMS: &str = include_str!("../tests/fixtures/checksums.txt");
     const ASSETS_JSON: &str = include_str!("../tests/fixtures/release_assets.json");
+    // Immutable historical fixture identity, not the current release pin.
+    const HISTORICAL_RC3: BinarySpec = BinarySpec {
+        tag: "terraphim_lsp-v1.22.0-rc.3",
+        ..LSP
+    };
 
     /// `LSP` without the Gitea source: the GitHub-only flow.
     const GH: BinarySpec = BinarySpec { gitea: None, ..LSP };
@@ -915,7 +983,7 @@ mod tests {
         );
         assert_eq!(
             binary_path(&mcp),
-            "terraphim-lsp-terraphim_lsp-v1.22.0-rc.3/terraphim_mcp_server"
+            "terraphim-lsp-terraphim_lsp-v1.22.0-rc.7/terraphim_mcp_server"
         );
     }
 
@@ -961,13 +1029,13 @@ mod tests {
         }
     }
 
-    /// The fixtures are captured from the published pre-release, so the
-    /// pinned tag must resolve to the real (unsigned) universal binary on Gitea.
+    /// Preserve the real historical capture without re-labelling it as rc.7.
     #[test]
-    fn fixture_is_the_published_pinned_release() {
-        assert_eq!(LSP.tag, "terraphim_lsp-v1.22.0-rc.3");
+    fn fixture_is_the_historical_rc3_release() {
+        assert_eq!(HISTORICAL_RC3.tag, "terraphim_lsp-v1.22.0-rc.3");
+        assert_ne!(HISTORICAL_RC3.tag, LSP.tag);
         let assets = fixture_assets();
-        let candidates = candidate_assets(&LSP, MAC_ARM).unwrap();
+        let candidates = candidate_assets(&HISTORICAL_RC3, MAC_ARM).unwrap();
         let asset = pick_asset(&candidates, &assets).unwrap();
         assert_eq!(asset.name, "terraphim-lsp-universal-apple-darwin");
         assert!(asset.download_url.starts_with(
@@ -1086,11 +1154,11 @@ mod tests {
     fn install_layout_is_versioned() {
         assert_eq!(
             install_dir(&LSP),
-            "terraphim-lsp-terraphim_lsp-v1.22.0-rc.3"
+            "terraphim-lsp-terraphim_lsp-v1.22.0-rc.7"
         );
         assert_eq!(
             binary_path(&LSP),
-            "terraphim-lsp-terraphim_lsp-v1.22.0-rc.3/terraphim-lsp"
+            "terraphim-lsp-terraphim_lsp-v1.22.0-rc.7/terraphim-lsp"
         );
     }
 
@@ -1697,7 +1765,11 @@ mod tests {
         // The fixture is the Gitea release's own asset list.
         for asset in fixture_assets() {
             assert_eq!(
-                gitea_asset_url(LSP.gitea.unwrap(), LSP.tag, &asset.name),
+                gitea_asset_url(
+                    HISTORICAL_RC3.gitea.unwrap(),
+                    HISTORICAL_RC3.tag,
+                    &asset.name
+                ),
                 asset.download_url
             );
         }
@@ -1902,14 +1974,163 @@ mod catalog_configuration_tests {
     use super::*;
 
     #[test]
-    fn configured_lsp_changes_only_the_private_network_source() {
+    fn disabled_path_fallback_never_performs_lookup() {
+        for spec in [
+            MCP,
+            BinarySpec {
+                path_fallback: false,
+                ..LSP
+            },
+        ] {
+            let calls = std::cell::Cell::new(0);
+            assert_eq!(
+                fallback_from_path(&spec, || {
+                    calls.set(calls.get() + 1);
+                    Some("/unrelated/terraphim-lsp".into())
+                }),
+                None
+            );
+            assert_eq!(calls.get(), 0);
+        }
+    }
+
+    #[test]
+    fn legacy_path_fallback_preserves_lookup_and_empty_path_refusal() {
+        let calls = std::cell::Cell::new(0);
+        assert_eq!(
+            fallback_from_path(&LSP, || {
+                calls.set(calls.get() + 1);
+                Some("/existing/terraphim-lsp".into())
+            }),
+            Some("/existing/terraphim-lsp".into())
+        );
+        assert_eq!(calls.get(), 1);
+        assert_eq!(fallback_from_path(&LSP, || Some("  ".into())), None);
+        assert_eq!(fallback_from_path(&LSP, || None), None);
+    }
+
+    #[test]
+    fn pinned_github_urls_use_only_the_exact_release_and_supported_targets() {
+        let cases: &[(Os, Arch, &[&str])] = &[
+            (
+                Os::Mac,
+                Arch::Aarch64,
+                &["universal-apple-darwin", "aarch64-apple-darwin"],
+            ),
+            (
+                Os::Mac,
+                Arch::X8664,
+                &["universal-apple-darwin", "x86_64-apple-darwin"],
+            ),
+            (
+                Os::Linux,
+                Arch::X8664,
+                &["x86_64-unknown-linux-gnu", "x86_64-unknown-linux-musl"],
+            ),
+            (Os::Linux, Arch::Aarch64, &["aarch64-unknown-linux-musl"]),
+        ];
+        for &(os, arch, targets) in cases {
+            let assets = github_pinned_release(&configured_lsp(), Platform { os, arch }).unwrap();
+            let mut names: Vec<_> = targets
+                .iter()
+                .map(|target| format!("terraphim-lsp-{target}"))
+                .collect();
+            names.push("checksums.txt".into());
+            assert_eq!(assets.len(), names.len());
+            for (asset, expected) in assets.iter().zip(names) {
+                assert_eq!(asset.name, expected);
+                assert_eq!(asset.download_url, format!(
+                    "https://github.com/terraphim/terraphim-ai/releases/download/terraphim_lsp-v1.22.0-rc.7/{expected}"
+                ));
+            }
+        }
+        assert!(matches!(
+            github_pinned_release(
+                &LSP,
+                Platform {
+                    os: Os::Windows,
+                    arch: Arch::X8664
+                }
+            ),
+            Err(ProvisionError::UnsupportedPlatform { .. })
+        ));
+    }
+
+    #[test]
+    fn pinned_checksums_select_preferred_asset_and_only_skip_missing_entries() {
+        let platform = Platform {
+            os: Os::Mac,
+            arch: Arch::Aarch64,
+        };
+        let assets = github_pinned_release(&LSP, platform).unwrap();
+        let candidates = candidate_assets(&LSP, platform).unwrap();
+        let preferred = format!("{}  {}\n", "a".repeat(64), candidates[0]);
+        let alternate = format!("{}  {}\n", "b".repeat(64), candidates[1]);
+        let (asset, hash) =
+            pick_checksummed_asset(&candidates, &assets, &(alternate.clone() + &preferred))
+                .unwrap();
+        assert_eq!(asset.name, candidates[0]);
+        assert_eq!(hash, "a".repeat(64));
+        assert_eq!(
+            pick_checksummed_asset(&candidates, &assets, &alternate)
+                .unwrap()
+                .0
+                .name,
+            candidates[1]
+        );
+        let conflict = preferred + &format!("{}  {}\n", "c".repeat(64), candidates[0]) + &alternate;
+        assert!(matches!(
+            pick_checksummed_asset(&candidates, &assets, &conflict),
+            Err(ProvisionError::ChecksumAmbiguous { .. })
+        ));
+        assert!(matches!(
+            pick_checksummed_asset(
+                &candidates,
+                &assets,
+                &("malformed\n".to_owned() + &alternate)
+            ),
+            Err(ProvisionError::ChecksumMalformed { .. })
+        ));
+        assert!(matches!(
+            pick_checksummed_asset(&candidates, &assets, ""),
+            Err(ProvisionError::NoMatchingAsset { .. })
+        ));
+    }
+
+    #[test]
+    fn shared_public_release_pin_targets_rc7() {
+        assert_eq!(LSP.tag, "terraphim_lsp-v1.22.0-rc.7");
+        assert_eq!(LSP.repo, "terraphim/terraphim-ai");
+        assert_eq!(LSP.checksum_file, "checksums.txt");
+        if cfg!(feature = "public-catalog") {
+            assert_eq!(configured_lsp().gitea, None);
+        }
+    }
+
+    #[test]
+    fn configured_lsp_changes_only_catalog_source_and_fallback_policy() {
         let selected = configured_lsp();
         assert_eq!(
             BinarySpec {
                 gitea: LSP.gitea,
+                github_discovery: LSP.github_discovery,
+                path_fallback: LSP.path_fallback,
                 ..selected
             },
             LSP
+        );
+        assert_eq!(LSP.github_discovery, GithubDiscovery::ApiListing);
+        assert_eq!(MCP.github_discovery, GithubDiscovery::ApiListing);
+        const { assert!(LSP.path_fallback) };
+        const { assert!(!MCP.path_fallback) };
+        assert_eq!(selected.path_fallback, !cfg!(feature = "public-catalog"));
+        assert_eq!(
+            selected.github_discovery,
+            if cfg!(feature = "public-catalog") {
+                GithubDiscovery::PinnedChecksums
+            } else {
+                GithubDiscovery::ApiListing
+            }
         );
         assert_eq!(
             selected.gitea,

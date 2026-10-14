@@ -192,6 +192,102 @@ def validate_receipt(receipt, source, tag, catalog=False):
         raise GateError("Receipt does not authorize catalog submission")
 
 
+NATIVE_CHECKS = (
+    "defaultProvisioning", "cacheRestart", "createApplySaveUndoRedoReopen",
+    "synonymGraphExportTwice", "dirtyJsonRefusal", "trimDoneAnchorShift",
+    "cleanExportDirtyRefusal", "releasedGrepSharedSynonym",
+)
+
+
+def immutable_qualification_url(url, repo):
+    """Accept only a raw JSON file at a full commit in the public source repo."""
+    if not REPO_RE.fullmatch(repo) or not re.fullmatch(
+        rf"https://raw\.githubusercontent\.com/{re.escape(repo)}/[0-9a-f]{{40}}/"
+        r"(?:[A-Za-z0-9_-]+/)*[A-Za-z0-9_.-]+\.json", url
+    ):
+        raise GateError("Native qualification must be immutable raw JSON in the source repository")
+    return url
+
+
+def validate_native_qualification(data, source, manifest, contract, assets):
+    """Validate declared source-UAT evidence; never equate it to CI package WASM."""
+    if not 0 < len(data) <= 1024 * 1024:
+        raise GateError("Native qualification receipt exceeds the size limit")
+    value = json.loads(data)
+    if (
+        not isinstance(value, dict) or type(value.get("schema")) is not int
+        or value.get("schema") != 1 or value.get("status") != "PASS"
+        or value.get("scope") != "stock-zed-source"
+        or value.get("qualifiedCommit") != source
+        or value.get("extensionId") != "terraphim-lsp"
+        or value.get("extensionPath") != package.CATALOG_PATH
+        or value.get("version") != manifest["version"]
+    ):
+        raise GateError("Native source qualification identity or scope differs")
+
+    def binary_record(record, maximum):
+        return (isinstance(record, dict)
+                and isinstance(record.get("sha256"), str)
+                and re.fullmatch(r"[0-9a-f]{64}", record["sha256"])
+                and type(record.get("bytes")) is int
+                and 0 < record["bytes"] <= maximum)
+
+    if not binary_record(value.get("sourceInstallWasm"), 5 * 1024 * 1024):
+        raise GateError("Native source-install WASM evidence is missing or invalid")
+    server = value.get("server")
+    if (not binary_record(server, 128 * 1024 * 1024)
+        or server.get("releaseTag") != contract["tag"]
+        or not any(server["sha256"] == asset["sha256"]
+                   and server["bytes"] == asset["bytes"] for asset in assets)):
+        raise GateError("Native server differs from the verified public LSP release")
+    checks = value.get("checks")
+    if (not isinstance(checks, dict) or any(checks.get(name) != "PASS" for name in NATIVE_CHECKS)
+        or any(result != "PASS" for result in checks.values())):
+        raise GateError("Required native saved-output checks have not passed")
+    outputs = value.get("savedOutputs")
+    if (not isinstance(outputs, list) or not 1 <= len(outputs) <= 100
+        or any(not binary_record(item, 32 * 1024 * 1024)
+               or not re.fullmatch(r"[A-Za-z0-9][A-Za-z0-9_.-]*", item.get("name", ""))
+               for item in outputs)
+        or len({item["name"] for item in outputs}) != len(outputs)):
+        raise GateError("Native saved-output identities are missing or invalid")
+    return value
+
+
+def native_evidence_record(data, url, repo, source, manifest, contract, assets):
+    """Bind immutable receipt bytes and validated declarations to the preflight."""
+    immutable_qualification_url(url, repo)
+    value = validate_native_qualification(data, source, manifest, contract, assets)
+    return {"url": url, "sha256": hashlib.sha256(data).hexdigest(), "bytes": len(data),
+            "scope": value["scope"], "qualifiedCommit": value["qualifiedCommit"],
+            "sourceInstallWasm": value["sourceInstallWasm"], "server": value["server"]}
+
+
+def release_admission(event, ref, tag, publish):
+    """Publishing requires manual dispatch at the exact immutable tag ref."""
+    if publish and (event != "workflow_dispatch" or ref != f"refs/tags/{tag}"):
+        raise GateError("Publish requires manual dispatch at the exact release tag")
+    return publish
+
+
+def release_contract(root, extension_path):
+    """Run the actual shared Rust contract in the selected package feature mode."""
+    package.identity(root, extension_path)
+    command = ["cargo", "run", "--locked", "--offline", "--quiet"]
+    if extension_path == package.CATALOG_PATH:
+        command += ["--no-default-features", "--features", "public-catalog"]
+    command += ["--example", "release-contract"]
+    contract = json.loads(subprocess.check_output(command, cwd=root, text=True))
+    if extension_path == package.CATALOG_PATH and (
+        contract.get("public_catalog") is not True
+        or contract.get("gitea") is not None
+        or contract.get("path_fallback") is not False
+        or contract.get("github_discovery") != "pinned_checksums"
+    ):
+        raise GateError("Catalog contract must use only pinned public assets")
+    return contract
+
+
 def preflight(args):
     if not REPO_RE.fullmatch(args.repo):
         raise GateError("--repo must be owner/name")
@@ -212,6 +308,7 @@ def preflight(args):
     if args.catalog:
         catalog_manifest(manifest, args.tag)
         qualification(source, args.qualified_commit, args.qualification_url)
+        immutable_qualification_url(args.qualification_url, args.repo)
     if args.out.exists() or args.out.is_symlink():
         raise GateError("Use a new output directory for each public preflight")
     args.out.mkdir(parents=True)
@@ -228,22 +325,7 @@ def preflight(args):
         )
     )
     source_ancestry(repo, comparison, source)
-    contract = json.loads(
-        subprocess.check_output(
-            [
-                "cargo",
-                "run",
-                "--locked",
-                "--offline",
-                "--quiet",
-                "--example",
-                "release-contract",
-            ],
-            cwd=ROOT,
-            text=True,
-        )
-    )
-    # These values come from compiled provision::LSP/candidate_assets, not a second pin.
+    contract = release_contract(ROOT, args.extension_path)
     if not REPO_RE.fullmatch(contract["repo"]) or not re.fullmatch(
         r"[A-Za-z0-9_.-]+", contract["tag"]
     ):
@@ -275,6 +357,11 @@ def preflight(args):
         record = verify_binary(args.out / name, expected[name])
         record["url"] = url
         assets.append(record)
+    native_evidence = None
+    if args.catalog:
+        native_bytes = anonymous_download(args.qualification_url, args.out / "native-qualification.json")
+        native_evidence = native_evidence_record(native_bytes, args.qualification_url,
+            args.repo, source, manifest, contract, assets)
     receipt = {
         "status": "PASS",
         "checkedAt": datetime.datetime.now(datetime.timezone.utc).isoformat(),
@@ -286,6 +373,7 @@ def preflight(args):
         "extensionPath": args.extension_path,
         "catalog": args.catalog,
         "qualificationUrl": args.qualification_url if args.catalog else None,
+        "nativeQualification": native_evidence,
         "publicLsp": contract,
         "assets": assets,
     }
@@ -300,10 +388,16 @@ def main():
     parser.add_argument("--out", type=Path, required=True)
     parser.add_argument("--catalog", action="store_true")
     parser.add_argument("--extension-path", default="")
+    parser.add_argument("--release-event", choices=["push", "workflow_dispatch"])
+    parser.add_argument("--release-ref", default="")
+    parser.add_argument("--release-publish", choices=["true", "false"], default="false")
     parser.add_argument("--qualified-commit", default="")
     parser.add_argument("--qualification-url", default="")
     args = parser.parse_args()
     try:
+        if args.release_event is not None:
+            args.catalog = release_admission(args.release_event, args.release_ref,
+                                             args.tag, args.release_publish == "true")
         result = preflight(args)
         print(
             json.dumps(

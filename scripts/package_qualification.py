@@ -12,7 +12,6 @@ from pathlib import Path
 import subprocess
 import sys
 import tarfile
-import tomllib
 
 import marketplace
 import package
@@ -25,10 +24,10 @@ def record(data):
     return {"sha256": hashlib.sha256(data).hexdigest(), "bytes": len(data)}
 
 
-def source_state(root, tag):
+def source_state(root, tag, extension_path=""):
     """Require a clean tracked checkout at the existing tag and read its files."""
-    files = {name: (root / name).read_bytes() for name in package.FILES}
-    manifest = tomllib.loads(files["extension.toml"].decode("utf-8"))
+    selected, manifest, _ = package.identity(root, extension_path)
+    files = {name: (selected / name).read_bytes() for name in package.FILES}
     package.check_tag(tag, manifest["version"])
 
     def git(*args):
@@ -41,14 +40,16 @@ def source_state(root, tag):
     if git("status", "--porcelain", "--untracked-files=no").strip():
         raise marketplace.GateError("Package qualification requires clean tracked source")
     for name, data in files.items():
-        if data != git("show", f"{source}:{name}"):
+        if data != git("show", f"{source}:{(Path(extension_path) / name).as_posix()}"):
             raise marketplace.GateError(f"Source file differs from tagged bytes: {name}")
     return source, manifest, files
 
 
-def inspect_archive(data, version):
+def inspect_archive(data, version, extension_path=""):
     """Read the four exact regular files, rejecting aliases, links and extras."""
-    prefix = f"terraphim-zed-{version}"
+    if extension_path not in package.PACKAGE_IDENTITIES:
+        raise package.PackageError("Unsupported extension path")
+    prefix = f"{package.PACKAGE_IDENTITIES[extension_path][1]}-{version}"
     file_names = package.FILES + ["extension.wasm"]
     expected_names = {prefix} | {f"{prefix}/{name}" for name in file_names}
     with tarfile.open(fileobj=io.BytesIO(data), mode="r:gz") as archive:
@@ -73,22 +74,30 @@ def inspect_archive(data, version):
     return files
 
 
-def capture(root, artifacts, tag, expected_source=None):
+def capture(root, artifacts, tag, expected_source=None, extension_path=""):
     """Inspect actual bytes and return the complete deterministic qualification."""
-    source, manifest, source_files = source_state(root, tag)
+    source, manifest, source_files = source_state(root, tag, extension_path)
     if expected_source is not None and source != expected_source:
         raise marketplace.GateError("Checked-out source differs from publication source")
     preflight_bytes = (artifacts / "public-preflight/preflight.json").read_bytes()
     preflight = json.loads(preflight_bytes)
     marketplace.validate_receipt(preflight, source, tag)
     if (
-        preflight.get("version") != manifest["version"]
+        preflight.get("extensionPath", "") != extension_path
+        or preflight.get("version") != manifest["version"]
         or preflight.get("extensionId") != manifest["id"]
         or not marketplace.REPO_RE.fullmatch(preflight.get("repository", ""))
     ):
         raise marketplace.GateError("Preflight identity differs from tagged manifest")
+    if extension_path and preflight.get("catalog"):
+        native_data = (artifacts / "public-preflight/native-qualification.json").read_bytes()
+        native_record = marketplace.native_evidence_record(native_data,
+            preflight["qualificationUrl"], preflight["repository"], source,
+            manifest, preflight["publicLsp"], preflight["assets"])
+        if native_record != preflight.get("nativeQualification"):
+            raise marketplace.GateError("Native source receipt differs from the checked preflight")
     folder = artifacts / "release-dist"
-    archive = folder / f"terraphim-zed-{tag[1:]}.tar.gz"
+    archive = folder / f"{package.PACKAGE_IDENTITIES[extension_path][1]}-{tag[1:]}.tar.gz"
     archive_bytes = archive.read_bytes()
     sums = folder / "SHA256SUMS"
     sums_bytes = sums.read_bytes()
@@ -96,7 +105,7 @@ def capture(root, artifacts, tag, expected_source=None):
         archive.name: record(archive_bytes)["sha256"]
     }:
         raise marketplace.GateError("Release package does not match its checksum manifest")
-    members = inspect_archive(archive_bytes, manifest["version"])
+    members = inspect_archive(archive_bytes, manifest["version"], extension_path)
     for name, data in source_files.items():
         if members[name] != data:
             raise marketplace.GateError(f"Packaged source differs from tagged bytes: {name}")
@@ -110,6 +119,7 @@ def capture(root, artifacts, tag, expected_source=None):
         "repository": preflight["repository"],
         "version": manifest["version"],
         "extensionId": manifest["id"],
+        "extensionPath": extension_path,
         "publicPreflight": record(preflight_bytes),
         "archive": {"name": archive.name, **record(archive_bytes)},
         "checksums": {"name": sums.name, **record(sums_bytes)},
@@ -118,9 +128,9 @@ def capture(root, artifacts, tag, expected_source=None):
     return preflight, report, members, [archive, sums, folder / RECEIPT]
 
 
-def qualify(root, artifacts, tag, wasm):
+def qualify(root, artifacts, tag, wasm, extension_path=""):
     """Issue a new receipt only when the archive contains the actual CI module."""
-    _, report, members, files = capture(root, artifacts, tag)
+    _, report, members, files = capture(root, artifacts, tag, extension_path=extension_path)
     if members["extension.wasm"] != wasm.read_bytes():
         raise marketplace.GateError("Packaged WASM differs from the tested CI module")
     # Never replace prior qualification evidence, including an interrupted run.
@@ -129,9 +139,10 @@ def qualify(root, artifacts, tag, wasm):
     return report
 
 
-def verify(root, artifacts, tag, source):
+def verify(root, artifacts, tag, source, extension_path=""):
     """Require the CI receipt to match all independently re-read source/bytes."""
-    preflight, actual, _, files = capture(root, artifacts, tag, source)
+    preflight, actual, _, files = capture(root, artifacts, tag, source, extension_path)
+    marketplace.validate_receipt(preflight, source, tag, catalog=bool(extension_path))
     qualified = json.loads(files[-1].read_bytes())
     if qualified != actual:
         raise marketplace.GateError("Package bytes or source differ from CI qualification")
@@ -141,11 +152,12 @@ def verify(root, artifacts, tag, source):
 def main():
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument("--tag", required=True)
+    parser.add_argument("--extension-path", choices=package.PACKAGE_IDENTITIES, default="")
     parser.add_argument("--artifacts", type=Path, default=Path("."))
     parser.add_argument("--wasm", type=Path, required=True)
     args = parser.parse_args()
     try:
-        report = qualify(package.ROOT, args.artifacts, args.tag, args.wasm)
+        report = qualify(package.ROOT, args.artifacts, args.tag, args.wasm, args.extension_path)
         print(json.dumps(report))
     except (
         marketplace.GateError, package.PackageError, KeyError, ValueError,

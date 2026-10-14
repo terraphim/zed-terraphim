@@ -2,17 +2,19 @@
 """Check and stage the exact compiled LSP-only package for native qualification."""
 
 import argparse
+import copy
 import hashlib
 import json
 from pathlib import Path
 import shutil
 import subprocess
+import tempfile
 import tomllib
 
 import marketplace
 import package
 
-PATH = "catalog/terraphim-lsp"
+PATH = package.CATALOG_PATH
 
 
 def validate_source(root):
@@ -33,8 +35,15 @@ def validate_source(root):
         )
     if legacy["id"] != "terraphim" or not legacy.get("context_servers"):
         raise marketplace.GateError("Preserve the existing combined adapter identity")
-    if manifest["language_servers"] != legacy["language_servers"]:
-        raise marketplace.GateError("The two packages must register the same LSP")
+    servers = manifest["language_servers"]
+    expected = copy.deepcopy(legacy["language_servers"])
+    if servers != expected:
+        # JSON buffers only protect exported destinations. Preserve the legacy
+        # registration; never enable other servers/features to satisfy this gate.
+        expected["terraphim-lsp"]["languages"] = ["Markdown", "JSON", "JSONC"]
+        expected["terraphim-lsp"]["language_ids"] = {"JSON": "json", "JSONC": "jsonc"}
+        if servers != expected:
+            raise marketplace.GateError("Catalog may add only passive JSON/JSONC registration")
     if cargo["lib"]["path"] != "../../src/lib.rs":
         raise marketplace.GateError(
             "The catalog must compile the existing adapter source"
@@ -97,12 +106,29 @@ def stage(root, wasm, output):
     return receipt
 
 
+def release(root, wasm, output, tag):
+    """Archive the size/source-checked catalog bytes with the existing packager."""
+    # Stage privately so another build cannot replace the module after validation.
+    with tempfile.TemporaryDirectory(prefix="zed-catalog-release-") as folder:
+        checked = Path(folder)
+        receipt = stage(root, wasm, checked)
+        result = package.package(root, checked / "extension.wasm", output, tag,
+                                 extension_path=PATH)
+        (output / "catalog-build-receipt.json").write_text(json.dumps(receipt, indent=2) + "\n")
+        return result
+
+
 def main():
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument("--wasm", type=Path, required=True)
     parser.add_argument("--out", type=Path, default=package.ROOT / "dist/catalog")
+    parser.add_argument("--tag", help="Create a catalog release archive for this immutable tag")
     args = parser.parse_args()
-    print(json.dumps(stage(package.ROOT, args.wasm, args.out), indent=2))
+    if args.tag:
+        result = release(package.ROOT, args.wasm, args.out, args.tag)
+        print(result.tarball)
+    else:
+        print(json.dumps(stage(package.ROOT, args.wasm, args.out), indent=2))
 
 
 if __name__ == "__main__":
