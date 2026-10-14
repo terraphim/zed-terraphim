@@ -1,0 +1,194 @@
+{
+  "schema": 1,
+  "at": "2026-10-14T17:30:21.403459+00:00",
+  "status": "PASS",
+  "scope": "stock-zed-released-compiled-package",
+  "qualifiedCommit": "b75b475adebe42604ac9ba86023b884c7049bc58",
+  "extensionId": "terraphim-lsp",
+  "version": "0.2.0",
+  "host": {
+    "application": "Zed",
+    "version": "1.23.3",
+    "platform": "macOS ARM64"
+  },
+  "release": {
+    "id": 412978715,
+    "url": "https://github.com/terraphim/zed-terraphim/releases/tag/v0.2.0"
+  },
+  "ciArtifact": {
+    "id": 11914862733,
+    "name": "zed-release-v0.2.0",
+    "createdAt": "2026-10-14T17:10:45Z",
+    "bytes": 127105,
+    "sha256": "83659dc7b9aac0093b06df3dd68b24d4805c619138a889574ee7ccfe36ea665b"
+  },
+  "archive": {
+    "name": "terraphim-lsp-0.2.0.tar.gz",
+    "url": "https://github.com/terraphim/zed-terraphim/releases/download/v0.2.0/terraphim-lsp-0.2.0.tar.gz",
+    "bytes": 121025,
+    "sha256": "efaa6667c75d449490f0168c0665886cb1fd78a34c1c25531cdf9d6b189d50df"
+  },
+  "installedModule": {
+    "sha256": "bc3107fdeae0f24f6bd0d221ff2c12ecf5eeb74682357c11a6bd21051deb5f1d",
+    "bytes": 319339
+  },
+  "server": {
+    "releaseTag": "terraphim_lsp-v1.22.0-rc.7",
+    "source": "4fb62d337c306a9105c5e872f3400f3052a2caef",
+    "sha256": "ed60697248dfbef1d3b731e5f758fd7f02c00c74b3da8581df11dd78fa2e32cd",
+    "bytes": 13497968
+  },
+  "installation": "Stock Zed Install Dev Extension selected the actual downloaded four-file archive directory with no Cargo.toml. Installed module is the original Linux CI release WASM. Fresh isolated profile automatically downloaded the pinned checksum-verified public RC7 universal server; no manual binary/cache seed, binary.path override or PATH fallback. This is a manual compiled-package install, not an official catalog installation.",
+  "checks": {
+    "defaultProvisioning": "PASS",
+    "cacheRestart": "PASS",
+    "createApplySaveUndoRedoReopen": "PASS",
+    "synonymGraphExportTwice": "PASS",
+    "dirtyJsonRefusal": "PASS",
+    "trimDoneAnchorShift": "PASS",
+    "cleanExportDirtyRefusal": "PASS",
+    "releasedGrepSharedSynonym": "PASS"
+  },
+  "dirtyJson": {
+    "actualPendingChange": "Saved Markdown adds Hazard while the existing disk graph contains only Risk/Concern; the unsaved interior name is UNSAVED INTERIOR RELEASED.",
+    "visibleRefusal": "terraphim-lsp: the export buffer has unconfirmed changes; save or close it before exporting again.",
+    "diskBefore": "10-dirty-graph-disk-before.json",
+    "diskAfterRefusal": "11-dirty-graph-disk-after-refusal.json",
+    "preservedBufferSaved": "12-preserved-interior-saved.json",
+    "subsequentSuccess": "13-export-after-save-with-hazard.json",
+    "bufferObservation": "CUA transcript image showed the exact unsaved interior text and dirty tab after refusal. Subsequent native Save preserved those actual bytes, and the next native export added Hazard."
+  },
+  "trim": {
+    "level": "Tighten more ~20%",
+    "action": "Done",
+    "ghostCount": 11,
+    "prefix": "UPDATED ",
+    "anchorDelta": 8,
+    "cleanBytes": 2137
+  },
+  "inputSeparation": {
+    "plainInputSha256": "5adec513de2cc1672ff08e7de3bdff4cf8ddd37fce8e6f2fa39110c9fcbf503f",
+    "plainSource": "Concern and Hazard were newly authored through native commands. Output01 registers Concern while Risk remains active; output04 separately swaps the word to Concern. Native undo output02 equals the plain input.",
+    "trimInputSha256": "80b4a8b625920ff9a3b6581c5f64b9fbb232cb79a813fdb573a0b0ba4c5694d4",
+    "trimFixture": "The separately preauthored Trim input already contains its synonym annotation. Done created the11 ghost annotations; this input is not represented as newly authored output."
+  },
+  "releasedGrep": {
+    "version": "1.21.19",
+    "binarySha256": "ce20e2bf87c6753c717dade4ac7baac98b05d0be9cb39af1f3afbcbf6e5c47de",
+    "release": "https://github.com/terraphim/terraphim-clients/releases/tag/v1.21.19",
+    "query": "concern",
+    "searchOnly": true,
+    "baselinePassages": 0,
+    "sharedGraphPassages": 1,
+    "sourcePassage": "Risk is manageable. The release decision is to retain a backup supplier.",
+    "synthesis": "Not exercised in this bounded extension qualification."
+  },
+  "visualEvidence": {
+    "status": "CUA_TRANSCRIPT_ONLY_NO_PERSISTED_IMAGE",
+    "observations": "Actual tool images show the native install, word swap, dirty JSON interior/refusal, Trim preview, clean output and dirty-clean refusal/preserved buffer.",
+    "limitation": "No durable screenshot or video file is claimed; earlier source-run capture failures remain separately recorded. No additional capture retries or substitute images were used."
+  },
+  "automationNotes": [
+    "Initial chooser selection used remembered source folder before Go To settled. Source-linked extension was detected by hash/path assertion and removed through UI before any Markdown was opened. Then observed chooser selected exact released four-file directory. No source-linked native outputs are counted.",
+    "The prefix edit saved before asynchronous annotation reconciliation finished; a second native Save after settlement produced all11 correctly shifted anchors."
+  ],
+  "scopeLimits": [
+    "Manual installation of the genuine compiled GitHub release; official Zed catalog submission/installation remains pending.",
+    "Native host qualification is macOS ARM64, not every OS or all41 browser-editor requirements.",
+    "JSONC dirty handling is separately proved by released-server protocol tests; this native graph filename is JSON.",
+    "Zed application fork remains separate."
+  ],
+  "qualificationMeaning": "The eight listed functional saved-output checks passed using the actual downloaded compiled extension. Visual and catalog limits remain explicit.",
+  "savedOutputs": [
+    {
+      "name": "01-created-saved.md",
+      "sha256": "fa6ab1275ca14df7920b2e05edd9a421e322af5c400bbeb5aca57cda276a595c",
+      "bytes": 567
+    },
+    {
+      "name": "02-undo-saved.md",
+      "sha256": "5adec513de2cc1672ff08e7de3bdff4cf8ddd37fce8e6f2fa39110c9fcbf503f",
+      "bytes": 73
+    },
+    {
+      "name": "03-redo-reopened.md",
+      "sha256": "fa6ab1275ca14df7920b2e05edd9a421e322af5c400bbeb5aca57cda276a595c",
+      "bytes": 567
+    },
+    {
+      "name": "04-swap-saved.md",
+      "sha256": "52ca74f9b11a29996fe9bafa009e0d2d3ba5bc6ce3a7319dc48cc041ba543626",
+      "bytes": 573
+    },
+    {
+      "name": "05-exported-graph.json",
+      "sha256": "38665290c40b3d4bcb38ef1ced867087c1ae0e01c6b32eae14ca1db553d6f420",
+      "bytes": 281
+    },
+    {
+      "name": "06-repeated-export.json",
+      "sha256": "4c0bfd9964b0f42f35afbf0338fe4e8bc0d11fc109928ca31c06cc48b9a3756e",
+      "bytes": 281
+    },
+    {
+      "name": "07-grep-before-sharing.json",
+      "sha256": "fc56c1d4a44f506af409eee56121a46f3cc8477672d2dc34607a5559e163d617",
+      "bytes": 344
+    },
+    {
+      "name": "08-grep-with-authored-synonym.json",
+      "sha256": "9551f2c6e8d5834edf27dae8a21666c6c419dbba1135953a68f8629fbf3a6d1a",
+      "bytes": 885
+    },
+    {
+      "name": "09-hazard-pending-source.md",
+      "sha256": "af0d51cc4f95d7e92b0b53844b583891178fde79347fa64b7cb917d2b07ae387",
+      "bytes": 650
+    },
+    {
+      "name": "10-dirty-graph-disk-before.json",
+      "sha256": "4c0bfd9964b0f42f35afbf0338fe4e8bc0d11fc109928ca31c06cc48b9a3756e",
+      "bytes": 281
+    },
+    {
+      "name": "11-dirty-graph-disk-after-refusal.json",
+      "sha256": "4c0bfd9964b0f42f35afbf0338fe4e8bc0d11fc109928ca31c06cc48b9a3756e",
+      "bytes": 281
+    },
+    {
+      "name": "12-preserved-interior-saved.json",
+      "sha256": "c28c5bd17356a65df8f7fc9dfff44580a2241ca98bb8163eb93414f1d1fd0edd",
+      "bytes": 287
+    },
+    {
+      "name": "13-export-after-save-with-hazard.json",
+      "sha256": "6d544d87bcd8bbfed545136e1bb663bc5e8876a37e0e7b11458c072fb8d1df05",
+      "bytes": 395
+    },
+    {
+      "name": "14-trim-done-saved.md",
+      "sha256": "5e48e63b115302bb81525d6eb8a348de696fdd943e974c5fb9167cd9b104c033",
+      "bytes": 6386
+    },
+    {
+      "name": "15-reopened-prefix-edit-saved.md",
+      "sha256": "d58874b0ff6548e0bffb59de36a8e9151fba437c5555de0b596c463e00008cc9",
+      "bytes": 6396
+    },
+    {
+      "name": "16-clean-export.md",
+      "sha256": "14c08e479f09302aa039dbd69bf8af6150a99d58b034001cf0e357ac47e28b8c",
+      "bytes": 2137
+    },
+    {
+      "name": "17-dirty-clean-disk-after-refusal.md",
+      "sha256": "14c08e479f09302aa039dbd69bf8af6150a99d58b034001cf0e357ac47e28b8c",
+      "bytes": 2137
+    },
+    {
+      "name": "18-preserved-clean-edit-saved.md",
+      "sha256": "8f641f475698ac2ce5ac3216fd530140cbfc111479511d37825ba75a4d28b6ff",
+      "bytes": 2163
+    }
+  ]
+}
