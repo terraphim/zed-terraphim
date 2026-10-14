@@ -25,8 +25,10 @@ Rust types and crates.
 ## Publication status
 
 This is scoped extension source with public build/release CI. It is not yet an
-installable Zed registry entry. The current pin requires a new public LSP release
-with graph export and native qualification before marketplace submission.
+installable Zed registry entry. The prepared RC4 pin requires its new public LSP
+release and clean native installation qualification before marketplace submission.
+No RC4 checksum or successful installation is claimed while those gates are
+pending. See the [RC4 installation checklist](docs/rc4-install-qualification.md).
 
 Automatic provisioning supports macOS and Linux on x86_64 and ARM64. Windows
 automatic provisioning is not qualified; an explicit binary path remains possible.

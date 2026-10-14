@@ -76,3 +76,12 @@ binary.
 The exact catalog package installation and public LSP provisioning checks remain
 pending. All 41 original editor requirements are not certified for stock Zed.
 The Zed application fork is outside this package.
+
+## Prepared public RC4 installation (14 October 2026)
+
+The shared pin update targets `terraphim_lsp-v1.22.0-rc.4`, built from public
+crates.io dependencies. Checksums and native default-download results remain
+pending until the actual release exists. The retained RC3 fixtures and the
+candidate checks above do not qualify the RC4 release. The next run follows the
+[isolated installation checklist](rc4-install-qualification.md), using the catalog
+package without a binary override and inspecting the actual provisioned path.

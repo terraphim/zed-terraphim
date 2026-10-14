@@ -20,18 +20,16 @@
 //! Only raw (uncompressed) release assets are supported: the host extracts
 //! archives before the extension could hash them.
 //!
-//! # Sources (rc.3)
+//! # Release sources
 //!
-//! The rc.3 language server is published on the internal Gitea
-//! (`git.terraphim.cloud`), in the public release-only repository
-//! `terraphim/terraphim-lsp-releases` (no source; the source stays private in
-//! `terraphim/terraphim-ai`). A download is tried from that release first
-//! (its URLs are the `releases/download/<tag>/<asset>` scheme, so no API
-//! lookup is needed: the host's `download_file`, which sends no credentials,
-//! is the only call), then from the GitHub release, then `PATH`. Each source
-//! is verified against its own `checksums.txt`. Gitea is reachable from the
-//! tailnet only, so off the tailnet (or when an asset is missing) the
-//! download fails and the next source is used.
+//! The public catalog uses GitHub only for the shared rc.4 pin. Its release
+//! must exist and pass anonymous download checks before extension publication.
+//! The combined legacy adapter retains its Gitea-first source order, then
+//! GitHub and finally `PATH`; a missing internal release falls through to
+//! GitHub. Each source is checked against its own `checksums.txt`.
+//!
+//! The captured rc.3 Gitea fixtures remain historical parser/provisioning
+//! evidence. They are not checksums or installation evidence for rc.4.
 
 use sha2::{Digest, Sha256};
 use std::fmt;
@@ -64,15 +62,14 @@ pub struct BinarySpec {
 }
 
 /// The internal Gitea repository (tailnet only, public, release assets only)
-/// that hosts the rc.3 release channel. The source stays in the private
-/// `terraphim/terraphim-ai`.
+/// retained by the combined legacy adapter. The catalog never contacts it.
 pub const GITEA_RELEASES: &str = "https://git.terraphim.cloud/terraphim/terraphim-lsp-releases";
 
 /// The `terraphim-lsp` language server from terraphim-ai.
 pub const LSP: BinarySpec = BinarySpec {
     repo: "terraphim/terraphim-ai",
     gitea: Some(GITEA_RELEASES),
-    tag: "terraphim_lsp-v1.22.0-rc.3",
+    tag: "terraphim_lsp-v1.22.0-rc.4",
     asset_stem: "terraphim-lsp",
     checksum_file: "checksums.txt",
     dir_prefix: "terraphim-lsp",
@@ -243,7 +240,7 @@ impl std::error::Error for ProvisionError {}
 /// Release asset names for `platform`, most preferred first.
 ///
 /// macOS prefers the universal binary, then the per-architecture one
-/// (signing is release-dependent; the rc.3 macOS assets are unsigned);
+/// (signing is release-dependent; verify the selected release manifest);
 /// Linux prefers glibc on x86_64 and musl elsewhere. Windows is deferred
 /// (issue #16) and reported as unsupported.
 pub fn candidate_assets(
@@ -805,6 +802,11 @@ mod tests {
 
     const CHECKSUMS: &str = include_str!("../tests/fixtures/checksums.txt");
     const ASSETS_JSON: &str = include_str!("../tests/fixtures/release_assets.json");
+    // Immutable historical fixture identity, not the current release pin.
+    const HISTORICAL_RC3: BinarySpec = BinarySpec {
+        tag: "terraphim_lsp-v1.22.0-rc.3",
+        ..LSP
+    };
 
     /// `LSP` without the Gitea source: the GitHub-only flow.
     const GH: BinarySpec = BinarySpec { gitea: None, ..LSP };
@@ -915,7 +917,7 @@ mod tests {
         );
         assert_eq!(
             binary_path(&mcp),
-            "terraphim-lsp-terraphim_lsp-v1.22.0-rc.3/terraphim_mcp_server"
+            "terraphim-lsp-terraphim_lsp-v1.22.0-rc.4/terraphim_mcp_server"
         );
     }
 
@@ -961,13 +963,13 @@ mod tests {
         }
     }
 
-    /// The fixtures are captured from the published pre-release, so the
-    /// pinned tag must resolve to the real (unsigned) universal binary on Gitea.
+    /// Preserve the real historical capture without re-labelling it as rc.4.
     #[test]
-    fn fixture_is_the_published_pinned_release() {
-        assert_eq!(LSP.tag, "terraphim_lsp-v1.22.0-rc.3");
+    fn fixture_is_the_historical_rc3_release() {
+        assert_eq!(HISTORICAL_RC3.tag, "terraphim_lsp-v1.22.0-rc.3");
+        assert_ne!(HISTORICAL_RC3.tag, LSP.tag);
         let assets = fixture_assets();
-        let candidates = candidate_assets(&LSP, MAC_ARM).unwrap();
+        let candidates = candidate_assets(&HISTORICAL_RC3, MAC_ARM).unwrap();
         let asset = pick_asset(&candidates, &assets).unwrap();
         assert_eq!(asset.name, "terraphim-lsp-universal-apple-darwin");
         assert!(asset.download_url.starts_with(
@@ -1086,11 +1088,11 @@ mod tests {
     fn install_layout_is_versioned() {
         assert_eq!(
             install_dir(&LSP),
-            "terraphim-lsp-terraphim_lsp-v1.22.0-rc.3"
+            "terraphim-lsp-terraphim_lsp-v1.22.0-rc.4"
         );
         assert_eq!(
             binary_path(&LSP),
-            "terraphim-lsp-terraphim_lsp-v1.22.0-rc.3/terraphim-lsp"
+            "terraphim-lsp-terraphim_lsp-v1.22.0-rc.4/terraphim-lsp"
         );
     }
 
@@ -1697,7 +1699,11 @@ mod tests {
         // The fixture is the Gitea release's own asset list.
         for asset in fixture_assets() {
             assert_eq!(
-                gitea_asset_url(LSP.gitea.unwrap(), LSP.tag, &asset.name),
+                gitea_asset_url(
+                    HISTORICAL_RC3.gitea.unwrap(),
+                    HISTORICAL_RC3.tag,
+                    &asset.name
+                ),
                 asset.download_url
             );
         }
@@ -1900,6 +1906,16 @@ mod tests {
 #[cfg(test)]
 mod catalog_configuration_tests {
     use super::*;
+
+    #[test]
+    fn shared_public_release_pin_targets_rc4() {
+        assert_eq!(LSP.tag, "terraphim_lsp-v1.22.0-rc.4");
+        assert_eq!(LSP.repo, "terraphim/terraphim-ai");
+        assert_eq!(LSP.checksum_file, "checksums.txt");
+        if cfg!(feature = "public-catalog") {
+            assert_eq!(configured_lsp().gitea, None);
+        }
+    }
 
     #[test]
     fn configured_lsp_changes_only_the_private_network_source() {

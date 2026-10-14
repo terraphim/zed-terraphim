@@ -26,10 +26,12 @@ The live official registry had no Terraphim entry when checked on 13 October.
 Publication still requires these actual dependencies:
 
 1. A publicly downloadable LSP release with authored-synonym export. The
-   existing `terraphim_lsp-v1.22.0-rc.3` pin returned HTTP 404 on public GitHub.
-   Do not downgrade it, substitute local bytes or call internal access public
-   installation proof. Update the shared pin only after the new immutable
-   release is verified across all supported assets.
+   prepared shared pin is `terraphim_lsp-v1.22.0-rc.4`; its release and checksum
+   readback must pass for all six supported assets before this pin is published.
+   The earlier RC3 GitHub lookup returned HTTP 404; its retained Gitea fixtures
+   are historical evidence only. Do not substitute local bytes or call internal
+   access public installation proof. The [RC4 checklist](rc4-install-qualification.md)
+   keeps dependency download, native installation and catalog acceptance separate.
 2. Manual stock-Zed qualification at the exact source commit submitted, then
    a human-authored catalog PR under the upstream AI policy. Upstream review
    and registry publication remain distinct from source or release publication.
@@ -146,6 +148,6 @@ python3 scripts/marketplace.py --catalog --extension-path catalog/terraphim-lsp 
 
 The last command requires a clean checkout at the existing tag and a fresh
 output directory. It is intentionally expected to fail for the current
-unpublished public rc.3 dependency. A failed gate is a blocker, not successful
+unpublished public RC4 dependency. A failed gate is a blocker, not successful
 installation evidence. Actual release/catalog commands must be run only after
 reviewing the exact tag and the successful receipt.
