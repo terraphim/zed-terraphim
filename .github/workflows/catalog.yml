@@ -29,19 +29,31 @@ jobs:
       QUALIFIED_COMMIT: ${{ inputs.qualified_commit }}
       QUALIFICATION_URL: ${{ inputs.qualification_url }}
       CARGO_BUILD_BUILD_DIR: target/build
+      TOOLING_COMMIT: ${{ github.sha }}
     steps:
       - uses: actions/checkout@d23441a48e516b6c34aea4fa41551a30e30af803 # v6
         with:
           ref: refs/tags/${{ inputs.tag }}
           fetch-depth: 0
           persist-credentials: false
+      - name: Checkout reviewed catalog tooling separately from release source
+        uses: actions/checkout@d23441a48e516b6c34aea4fa41551a30e30af803 # v6
+        with:
+          ref: ${{ github.sha }}
+          path: catalog-tools
+          persist-credentials: false
+      - uses: pnpm/setup@5d160c5bc68a09337ad0d5654e237e03253b5879 # v1
+        with:
+          version: 11.28.5
+          runtime: node@24.21.0
+          install: false
       - run: bash scripts/ci.sh
       - name: Fail closed on source, native qualification, policy and raw LSP downloads
         run: python3 scripts/marketplace.py --catalog --extension-path catalog/terraphim-lsp --tag "$RELEASE_TAG" --repo "$SOURCE_REPO" --qualified-commit "$QUALIFIED_COMMIT" --qualification-url "$QUALIFICATION_URL" --out public-preflight
       - name: Prepare the patch for human submission under upstream AI policy
         env:
           GH_TOKEN: ${{ github.token }}
-        run: python3 scripts/prepare_catalog.py --tag "$RELEASE_TAG" --preflight public-preflight/preflight.json --out catalog-submission
+        run: python3 catalog-tools/scripts/prepare_catalog.py --tag "$RELEASE_TAG" --source-root . --tooling-commit "$TOOLING_COMMIT" --preflight public-preflight/preflight.json --out catalog-submission
       - uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4
         with:
           name: zed-catalog-${{ inputs.tag }}

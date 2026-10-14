@@ -117,15 +117,23 @@ and release CI remain automated; the upstream submission is a human action.
 1. Publish reviewed source and the exact immutable dependency release. Test that
    exact source manually in stock Zed and save the output evidence described in
    [qualification.md](qualification.md).
-2. Dispatch `catalog.yml` with its existing stable tag, the exact native-qualified
-   source SHA and an HTTPS evidence URL. No cross-repository token is needed.
+2. Dispatch `catalog.yml` from reviewed `main` with its existing stable tag, the
+   exact native-qualified source SHA and an immutable evidence URL. The workflow
+   keeps its tooling commit separate from the clean tagged release checkout, so
+   a tooling repair does not move an existing tag or rebuild a published package.
+   No cross-repository token is needed.
 3. CI repeats tests and public download checks, then `prepare_catalog.py` checks
    out the official catalog, updates only this extension's gitlink, `.gitmodules`
    and `extensions.toml` (with the catalog subdirectory), and runs upstream sorting.
-   Package install hooks are disabled; package tooling receives no GitHub token.
+   It independently checks the published archive/checksum/qualification files
+   against the tagged source. Upstream dependencies use its frozen pnpm lockfile,
+   pnpm 11.28.5 and Node 24.21.0; runtime changes require tooling review. The exact
+   upstream manifest and lock bytes must remain unchanged. Package install hooks
+   are disabled; package tooling receives no GitHub token.
 4. The artifact contains `catalog.patch`, `submission.json` and human handoff
    instructions. It records `HUMAN_SUBMISSION_REQUIRED`, exact source/tag/base,
-   evidence URL and patch hash. It creates no fork, branch, PR or comment.
+   evidence URL and patch hash, plus the separate tooling commit, runtime/lock
+   identities and published package hashes. It creates no fork, branch, PR or comment.
 5. A human maintainer reviews the outputs, applies the patch to their personal
    catalog fork, writes the PR explanation in their own words and submits it.
    Keep one extension per PR and no more than three open PRs per submitter.
