@@ -18,8 +18,11 @@ import package_qualification as qualification
 import publish_github
 
 
+VERSION = package.read_version((package.ROOT / "extension.toml").read_text())
+
+
 class Fixture:
-    def __init__(self, case, tag="v0.2.0", extension_path=""):
+    def __init__(self, case, tag=None, extension_path=""):
         temporary = tempfile.TemporaryDirectory()
         case.addCleanup(temporary.cleanup)
         self.base = Path(temporary.name)
@@ -38,13 +41,14 @@ class Fixture:
         self.git("add", ".")
         self.commit("fixture baseline")
         self.source = self.git("rev-parse", "HEAD")
-        self.tag = tag
+        self.version = package.read_version((self.root / extension_path / "extension.toml").read_text())
+        self.tag = tag or f"v{self.version}"
         self.git("tag", self.tag)
         self.artifacts = self.base / "artifacts"
         (self.artifacts / "public-preflight").mkdir(parents=True)
         self.proof = {
             "status": "PASS", "source": self.source, "tag": self.tag,
-            "version": "0.2.0", "extensionId": "terraphim-lsp" if extension_path else "terraphim",
+            "version": self.version, "extensionId": "terraphim-lsp" if extension_path else "terraphim",
             "extensionPath": extension_path, "catalog": bool(extension_path),
             "repository": "example/zed-terraphim",
         }
@@ -53,7 +57,7 @@ class Fixture:
             native = {
                 "schema": 1, "status": "PASS", "scope": "stock-zed-source",
                 "qualifiedCommit": self.source, "extensionId": "terraphim-lsp",
-                "extensionPath": extension_path, "version": "0.2.0",
+                "extensionPath": extension_path, "version": self.version,
                 "sourceInstallWasm": {"sha256": "1" * 64, "bytes": 562871},
                 "server": {"releaseTag": "terraphim_lsp-v1.22.0-rc.7",
                            "sha256": "2" * 64, "bytes": 13000000},
@@ -68,7 +72,7 @@ class Fixture:
             self.proof["assets"] = [{"sha256": native["server"]["sha256"], "bytes": native["server"]["bytes"]}]
             self.proof["nativeQualification"] = marketplace.native_evidence_record(
                 self.native_data, self.proof["qualificationUrl"], self.proof["repository"],
-                self.source, {"version": "0.2.0"}, self.proof["publicLsp"], self.proof["assets"])
+                self.source, {"version": self.version}, self.proof["publicLsp"], self.proof["assets"])
         self.preflight = self.artifacts / "public-preflight/preflight.json"
         self.preflight.write_text(json.dumps(self.proof))
         self.wasm = self.base / "ci-built.wasm"
@@ -101,7 +105,7 @@ class Fixture:
         self.packaged.sums.write_text(f"{digest}  {self.packaged.tarball.name}\n")
 
     def repack(self, name, data):
-        staged = self.packaged.tarball.parent / "terraphim-zed-0.2.0"
+        staged = self.packaged.tarball.parent / f"terraphim-zed-{self.version}"
         (staged / name).write_bytes(data)
         package.write_tarball(staged, self.packaged.tarball)
         self.refresh_checksum()
@@ -109,7 +113,7 @@ class Fixture:
 
 class PackageQualification(unittest.TestCase):
     def test_exact_ci_wasm_source_and_both_tags_are_bound(self):
-        for tag in ["v0.2.0", "v0.2.0-rc.1"]:
+        for tag in [f"v{VERSION}", f"v{VERSION}-rc.1"]:
             with self.subTest(tag=tag):
                 fixture = Fixture(self, tag)
                 result = fixture.qualify()
@@ -184,8 +188,8 @@ class PackageQualification(unittest.TestCase):
             fixture.verify()
 
     def test_preflight_identity_and_exact_bytes_must_match(self):
-        for key, value in [("source", "a" * 40), ("tag", "v0.2.0-rc.1"),
-                           ("version", "0.2.1"), ("extensionId", "another-id")]:
+        for key, value in [("source", "a" * 40), ("tag", f"v{VERSION}-rc.1"),
+                           ("version", f"{VERSION}-rc.1"), ("extensionId", "another-id")]:
             with self.subTest(key=key):
                 fixture = Fixture(self)
                 fixture.qualify()

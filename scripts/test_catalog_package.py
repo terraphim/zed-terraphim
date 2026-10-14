@@ -139,9 +139,11 @@ class CatalogPackageTests(unittest.TestCase):
     def test_manifest_version_mismatch_is_refused(self):
         root = self.fixture()
         path = root / catalog_package.PATH / "extension.toml"
-        path.write_text(
-            path.read_text().replace('version = "0.2.0"', 'version = "0.3.0"')
-        )
+        original = path.read_text()
+        version = tomllib.loads(original)["version"]
+        changed = original.replace(f'version = "{version}"', f'version = "{version}-mismatch"')
+        self.assertNotEqual(original, changed)
+        path.write_text(changed)
         with self.assertRaisesRegex(marketplace.GateError, "versions"):
             catalog_package.validate_source(root)
 

@@ -1,6 +1,6 @@
 id = "terraphim-lsp"
 name = "Terraphim LSP"
-version = "0.2.0"
+version = "0.2.1"
 schema_version = 1
 authors = ["Terraphim Team <team@terraphim.ai>"]
 description = "Terraphim knowledge-graph hover, synonym code actions, Lab marks and faded ghost text for Markdown, via terraphim-lsp."
