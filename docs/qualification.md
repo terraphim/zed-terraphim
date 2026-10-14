@@ -23,20 +23,44 @@ server executable SHA-256, Zed version and fixture source bytes. Use an isolated
 public project brief and save each resulting file.
 
 1. Install the exact catalog source in stock Zed with the legacy adapter disabled.
-2. Create/swap alternatives and save, close and reopen the Markdown document.
+2. Start with a clearly identified preauthored annotation or existing KG term,
+   swap an alternative, and save, close and reopen the Markdown document.
    Inspect the saved annotations and resulting text; verify undo and redo bytes.
+   The current stock-Zed adapter has no input UI for an arbitrary new alternative.
+   The separate `terraphim.alternative.add` protocol requires a caller to collect
+   the selection/text and apply the returned edit; a seeded fixture does not
+   qualify that authoring flow.
 3. Choose a trim level and **Done**. Save/reopen and inspect persisted ghost
    anchors, then verify subsequent edits keep the anchors aligned.
 4. Export the document knowledge graph twice from the native code action. Verify
-   the destination files, matching concept IDs for authored synonyms, stable
-   output and unchanged source. Test refusal of a dirty output destination.
+   the destination files, matching concept IDs for authored synonyms, equal
+   parsed graph data and unchanged source bytes. JSON object key order may vary.
+   Test refusal of a dirty output destination.
 5. Query the saved graph with released terraphim-grep. Retain baseline, graph-
    enabled retrieval and optional synthesis as separate outputs.
 6. Remove the binary override, install from the published source and anonymously
    downloadable release, then confirm the actual provisioned binary's checksum
    and restart from its verified cache.
 
-Current candidate native requalification is pending. The Mac lock prevented
-native input on 13 October; no save/reopen, Done or export success is claimed
-from that attempt. All 41 original editor requirements are not certified for
-stock Zed. The Zed application fork is outside this package.
+## Bounded native candidate evidence (14 October 2026)
+
+Stock Zed 1.23.3 with the installed legacy adapter 0.2.0 and an explicit candidate
+LSP override completed swaps of a preauthored Risk/Concern annotation, saved
+undo/redo, close/reopen, and two graph exports. The saved graph assigns both
+terms the same concept ID. Repeated export preserved the source bytes and parsed
+graph data; JSON object key order varied. Released terraphim-grep 1.21.19 queried
+the actual saved graph: a Concern query changed from zero baseline matches to
+one Risk passage, with no synthesis requested.
+
+The candidate LSP was built from source
+`34b890841184fd96208fb11f4e2e59aceee90c7a`; its executable SHA-256 was
+`a79b5ac5f66c7823b1eb8714c13aee7280c6b510afb851ad2bfafcf53946fde2`.
+This run used the existing legacy adapter, not an installed catalog package or
+publicly provisioned LSP release. The fixture supplied the alternatives before
+native input; it does not demonstrate arbitrary-alternative UI creation.
+
+Trim Done persistence, clean Markdown export, dirty-destination refusal and the
+catalog installation/provisioning checks remain pending. Native input was
+blocked again by the Mac lock before Trim qualification. All 41 original editor
+requirements are not certified for stock Zed. The Zed application fork is outside
+this package.
