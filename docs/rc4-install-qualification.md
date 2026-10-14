@@ -56,9 +56,12 @@ foreground output separately; do not replace or clear the user's logs.
 Use the bounded native checks in [qualification.md](qualification.md): swaps of
 existing alternatives, save/reopen, undo/redo, Trim Done, clean export, repeated
 knowledge-graph export and dirty-destination refusal. Clearly mark preauthored
-fixture annotations as input. The current stock adapter does not provide an
-arbitrary-alternative text-input UI; the separate LSP authoring protocol requires
-an explicit client caller.
+fixture annotations as input. Separately create a new alternative from plain
+Markdown with `terraphim.alternative.add_and_apply` in Zed's generic LSP picker,
+as described in [the authoring walkthrough](alternative-authoring.md). Supply
+the document URI, selection range and text explicitly; there is no automatic
+selection inference. Verify the newly generated annotation, save/reopen and
+undo/redo before exporting it. The original return-edit command is unchanged.
 
 Inspect the actual saved graph and unchanged source, then run released
 terraphim-grep against that graph. Keep baseline and graph-enabled outputs

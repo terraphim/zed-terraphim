@@ -15,10 +15,15 @@ no separate knowledge-graph engine and does not require a Zed application fork.
 
 In stock Zed, code actions swap existing KG synonyms and alternatives already
 saved in a Markdown annotation. Hover, diagnostics and writing actions use the
-shared LSP. For arbitrary new alternatives, the LSP exposes
-`terraphim.alternative.add`: a client must collect the selection and new text,
-invoke the command, and apply its returned edit. The current adapter provides no
-input UI for that authoring command or the browser editor's visual panels.
+shared LSP. The prepared RC4 server adds `terraphim.alternative.add_and_apply`
+for Zed's built-in LSP command picker: supply a JSON object with the document URI,
+selection range and new text. The server asks Zed to apply the annotation edit.
+This candidate flow has passed native save/reopen and undo/redo checks; the
+released RC4 installation gate remains pending. See the
+[command-picker walkthrough](docs/alternative-authoring.md).
+The original `terraphim.alternative.add` still returns an edit for clients that
+apply it themselves. The adapter does not infer the current selection or provide
+the browser editor's visual panels.
 Alternatives and authored `synonyms::` relationships use Terraphim's existing
 Rust types and crates.
 

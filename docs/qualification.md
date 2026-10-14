@@ -26,10 +26,12 @@ public project brief and save each resulting file.
 2. Start with a clearly identified preauthored annotation or existing KG term,
    swap an alternative, and save, close and reopen the Markdown document.
    Inspect the saved annotations and resulting text; verify undo and redo bytes.
-   The current stock-Zed adapter has no input UI for an arbitrary new alternative.
-   The separate `terraphim.alternative.add` protocol requires a caller to collect
-   the selection/text and apply the returned edit; a seeded fixture does not
-   qualify that authoring flow.
+   Separately start from plain Markdown and use the prepared RC4
+   `terraphim.alternative.add_and_apply` command in Zed's generic picker with an
+   explicit URI/range/text object. Inspect the newly created annotation and
+   repeat save/reopen and undo/redo. A seeded fixture cannot qualify authoring.
+   The original `terraphim.alternative.add` still returns an edit that the
+   generic picker only logs; use the explicit apply command for this check.
 3. Choose a trim level and **Done**. Save/reopen and inspect persisted ghost
    anchors, then verify subsequent edits keep the anchors aligned.
 4. Export the document knowledge graph twice from the native code action. Verify
@@ -75,6 +77,22 @@ binary.
 
 The exact catalog package installation and public LSP provisioning checks remain
 pending. All 41 original editor requirements are not certified for stock Zed.
+
+## New-alternative candidate check — 14 October 2026
+
+Stock Zed 1.23.3 ran the new `terraphim.alternative.add_and_apply` command through
+its generic LSP picker. A single JSON object supplied a range over `Risk` and
+the new text `Concern`; no annotation or synonym relationship existed in the
+initial fixture. Zed applied and saved the generated annotation. Native undo
+and save restored the original plain Markdown; redo and save restored the
+annotation byte for byte. After close/reopen, native graph export produced
+`risk` and `concern` with the same concept ID and preserved the source.
+
+This used an explicit candidate binary override (SHA-256
+`c7fd75a97184764860b0a7f5a129466e28f817e689f03ca17176d2545a352ba9`).
+It qualifies the manual JSON command path, not a selection-aware text prompt,
+default release download, or catalog installation. The earlier fixture-based
+checks above retain their original scope. See [authoring](alternative-authoring.md).
 The Zed application fork is outside this package.
 
 ## Prepared public RC4 installation (14 October 2026)
