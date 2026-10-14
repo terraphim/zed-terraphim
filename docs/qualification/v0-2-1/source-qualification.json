@@ -1,0 +1,209 @@
+{
+  "schema": 1,
+  "status": "PASS",
+  "scope": "stock-zed-source",
+  "checkedAt": "2026-10-14T19:15:40.260541+00:00",
+  "qualificationMeaning": "All eight native saved-output checks passed on the exact source in stock Zed. Source dev installation is separate from CI-built compiled-package and official catalog installation.",
+  "qualifiedCommit": "38f1f948db9fb62851ea469f7c344abb3f141b1f",
+  "extensionId": "terraphim-lsp",
+  "extensionPath": "catalog/terraphim-lsp",
+  "version": "0.2.1",
+  "host": {
+    "application": "Zed",
+    "version": "1.23.3",
+    "platform": "macOS ARM64",
+    "profile": "Fresh disposable profile, user profile unchanged"
+  },
+  "sourceInstallWasm": {
+    "sha256": "7f2efad3ab2a7a758fe11eecf0e4a87c928878a4d11d6cf0ad38d09f8de53eb5",
+    "bytes": 562878
+  },
+  "server": {
+    "releaseTag": "terraphim_lsp-v1.22.0-rc.7",
+    "source": "4fb62d337c306a9105c5e872f3400f3052a2caef",
+    "sha256": "ed60697248dfbef1d3b731e5f758fd7f02c00c74b3da8581df11dd78fa2e32cd",
+    "bytes": 13497968
+  },
+  "checks": {
+    "defaultProvisioning": "PASS",
+    "cacheRestart": "PASS",
+    "createApplySaveUndoRedoReopen": "PASS",
+    "synonymGraphExportTwice": "PASS",
+    "dirtyJsonRefusal": "PASS",
+    "trimDoneAnchorShift": "PASS",
+    "cleanExportDirtyRefusal": "PASS",
+    "releasedGrepSharedSynonym": "PASS"
+  },
+  "savedOutputs": [
+    {
+      "name": "01-created-saved.md",
+      "sha256": "fa6ab1275ca14df7920b2e05edd9a421e322af5c400bbeb5aca57cda276a595c",
+      "bytes": 567
+    },
+    {
+      "name": "02-undo-saved.md",
+      "sha256": "5adec513de2cc1672ff08e7de3bdff4cf8ddd37fce8e6f2fa39110c9fcbf503f",
+      "bytes": 73
+    },
+    {
+      "name": "03-redo-reopened.md",
+      "sha256": "fa6ab1275ca14df7920b2e05edd9a421e322af5c400bbeb5aca57cda276a595c",
+      "bytes": 567
+    },
+    {
+      "name": "04-swap-saved.md",
+      "sha256": "52ca74f9b11a29996fe9bafa009e0d2d3ba5bc6ce3a7319dc48cc041ba543626",
+      "bytes": 573
+    },
+    {
+      "name": "05-exported-graph.json",
+      "sha256": "38665290c40b3d4bcb38ef1ced867087c1ae0e01c6b32eae14ca1db553d6f420",
+      "bytes": 281
+    },
+    {
+      "name": "06-repeated-export.json",
+      "sha256": "38665290c40b3d4bcb38ef1ced867087c1ae0e01c6b32eae14ca1db553d6f420",
+      "bytes": 281
+    },
+    {
+      "name": "07-grep-before-sharing.json",
+      "sha256": "fc56c1d4a44f506af409eee56121a46f3cc8477672d2dc34607a5559e163d617",
+      "bytes": 344
+    },
+    {
+      "name": "08-grep-with-authored-synonym.json",
+      "sha256": "05810448d8b919b95c62c4d4ec434fb9e814337b41ceb7d613c0b1647a00b016",
+      "bytes": 888
+    },
+    {
+      "name": "09-hazard-pending-source.md",
+      "sha256": "af0d51cc4f95d7e92b0b53844b583891178fde79347fa64b7cb917d2b07ae387",
+      "bytes": 650
+    },
+    {
+      "name": "10-dirty-graph-disk-before.json",
+      "sha256": "38665290c40b3d4bcb38ef1ced867087c1ae0e01c6b32eae14ca1db553d6f420",
+      "bytes": 281
+    },
+    {
+      "name": "11-dirty-graph-disk-after-refusal.json",
+      "sha256": "38665290c40b3d4bcb38ef1ced867087c1ae0e01c6b32eae14ca1db553d6f420",
+      "bytes": 281
+    },
+    {
+      "name": "12-preserved-interior-saved.json",
+      "sha256": "948af8cf5ea34286b008658292bc695e93b4cf99db07ef46a47567d3aed31794",
+      "bytes": 282
+    },
+    {
+      "name": "13-export-after-save-with-hazard.json",
+      "sha256": "c84639c8fc558d4822628d6c9d3e5b810950bebe234a7a562ef88e93fd948e0f",
+      "bytes": 395
+    },
+    {
+      "name": "14-trim-done-saved.md",
+      "sha256": "c444b94405b9988e6688e6463a133f84280cebb463519bbbf2691a63045ef310",
+      "bytes": 5877
+    },
+    {
+      "name": "15-reopened-prefix-edit-saved.md",
+      "sha256": "cde9daf40e6f94bc3ff5874f01d0304b1e98e6c7a48e56935bfc12031daf37a7",
+      "bytes": 5885
+    },
+    {
+      "name": "16-clean-export.md",
+      "sha256": "df22377ca240d32e78f7f0aafd36309149c2badb9f47af395c14f9e0f8d5d3a8",
+      "bytes": 2081
+    },
+    {
+      "name": "17-dirty-clean-disk-after-refusal.md",
+      "sha256": "df22377ca240d32e78f7f0aafd36309149c2badb9f47af395c14f9e0f8d5d3a8",
+      "bytes": 2081
+    },
+    {
+      "name": "18-preserved-clean-edit-saved.md",
+      "sha256": "63361e6a434ea56ef399c94fb611324ec57b3e5a0287e3a7319e083d91742748",
+      "bytes": 2101
+    }
+  ],
+  "inputs": [
+    {
+      "name": "brief.md",
+      "sha256": "5adec513de2cc1672ff08e7de3bdff4cf8ddd37fce8e6f2fa39110c9fcbf503f",
+      "bytes": 73,
+      "kind": "Plain Markdown input; no annotation or authored synonym metadata"
+    },
+    {
+      "name": "trim-review.md",
+      "sha256": "d45ea44b237cd32acd172d2a68ae2d6b0b3dc61a07234febbdf64aec8dacb742",
+      "bytes": 2652,
+      "kind": "Plain Markdown input; no annotation or authored synonym metadata"
+    }
+  ],
+  "provisioning": {
+    "installRoute": "Stock Zed Extensions: Install Dev Extension, selecting exact catalog source",
+    "binaryOverride": false,
+    "manualCacheSeed": false,
+    "publicAsset": "terraphim-lsp-universal-apple-darwin",
+    "checksumMatchesAnonymousPublicManifest": true,
+    "versionOutput": "terraphim-lsp 1.22.0-rc.7"
+  },
+  "cacheRestart": {
+    "serverProcessChanged": true,
+    "serverHashUnchanged": true,
+    "serverMtimeNsUnchanged": true
+  },
+  "dirtyJson": {
+    "actualPendingChange": "Native authoring added Hazard to the saved document while the prior disk graph contained only Risk and Concern. The unsaved interior name was UNSAVED INTERIOR 0.2.1.",
+    "visibleRefusal": "terraphim-lsp: the export buffer has unconfirmed changes; save or close it before exporting again.",
+    "diskBefore": "10-dirty-graph-disk-before.json",
+    "diskAfterRefusal": "11-dirty-graph-disk-after-refusal.json",
+    "preservedBufferSaved": "12-preserved-interior-saved.json",
+    "subsequentSuccess": "13-export-after-save-with-hazard.json",
+    "bufferObservation": "Native CUA screenshot showed the exact interior text and dirty tab after refusal; native Save then produced the preserved bytes."
+  },
+  "trim": {
+    "input": "Plain prose; no preauthored annotations",
+    "level": "Tighten more ~20%",
+    "action": "Done",
+    "ghostCount": 11,
+    "prefix": "UPDATED ",
+    "anchorDeltaCharacters": 8,
+    "anchorsVerifiedAgainstActualSavedText": true,
+    "cleanBytes": 2081
+  },
+  "releasedGrep": {
+    "version": "1.21.20",
+    "binarySha256": "95491857b6a115ce7f4ec2a9d24bd0f7b8efcc1a52bd1403b34a62dd704012ab",
+    "release": "https://github.com/terraphim/terraphim-clients/releases/tag/v1.21.20",
+    "baselineCommand": "terraphim-grep Concern --search-only --haystack all --paths ./corpus --json -n 3",
+    "sharedGraphCommand": "terraphim-grep Concern --search-only --haystack all --paths ./corpus --json -n 3 --thesaurus ./brief.knowledge-graph.json",
+    "graphFile": "06-repeated-export.json",
+    "corpusInput": "inputs/brief.md copied to corpus/decision.md",
+    "baselinePassages": 0,
+    "sharedGraphPassages": 1,
+    "sourcePassage": "Risk is manageable. The release decision is to retain a backup supplier.",
+    "synthesis": "Not exercised in this bounded extension qualification; actual answer is null."
+  },
+  "visualEvidence": {
+    "status": "CUA_TRANSCRIPT_ONLY_NO_PERSISTED_IMAGE",
+    "observedImages": "Actual installed extension, authoring, code actions, refusal toast, dirty JSON interior, Trim preview and Done, clean export, and dirty-clean preserved buffer were observed in native CUA screenshots.",
+    "limitation": "No downloadable screenshot or video claimed."
+  },
+  "scopeLimits": [
+    "Native source development installation only; downloaded compiled-package qualification is a separate next gate.",
+    "Official catalog acceptance and installation remain pending.",
+    "No all-41 browser-editor parity claim.",
+    "Native dirty-destination test used JSON; JSONC is outside this native run.",
+    "The Zed application fork remains separate."
+  ],
+  "additionalSettingsCheck": {
+    "status": "BLOCKED",
+    "reason": "After the eight required checks, an extra plain-document test of the newly documented thesaurus setting was prepared. The Mac locked before the file could be opened and tested; no result is claimed."
+  },
+  "automationNotes": [
+    "Saved Trim anchors were inspected after asynchronous annotation reconciliation and a second native save.",
+    "A quick-open input race briefly created an unsaved wrong-name buffer; it was closed and the correct existing fixture opened before the prefix edit. No wrong-name file was saved.",
+    "Anchor validation uses character offsets, not UTF-8 byte offsets."
+  ]
+}
