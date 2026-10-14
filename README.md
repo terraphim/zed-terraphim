@@ -13,9 +13,14 @@ no separate knowledge-graph engine and does not require a Zed application fork.
   server. Its default behavior and extension ID remain compatible with existing
   installations. Use only one LSP adapter in a workspace.
 
-The shared LSP supports Markdown alternatives, hover, diagnostics and code actions.
-It does not embed the browser editor's visual panels. Alternatives and authored
-`synonyms::` relationships use Terraphim's existing Rust types and crates.
+In stock Zed, code actions swap existing KG synonyms and alternatives already
+saved in a Markdown annotation. Hover, diagnostics and writing actions use the
+shared LSP. For arbitrary new alternatives, the LSP exposes
+`terraphim.alternative.add`: a client must collect the selection and new text,
+invoke the command, and apply its returned edit. The current adapter provides no
+input UI for that authoring command or the browser editor's visual panels.
+Alternatives and authored `synonyms::` relationships use Terraphim's existing
+Rust types and crates.
 
 ## Publication status
 
